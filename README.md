@@ -1,76 +1,75 @@
-# AeroVector — Pilot Aptitude Screening Platform
+# AeroVector — Pilot Training Tests
 
-Independent aviation-inspired aptitude screening prototype, built entirely with **HTML, CSS, vanilla JavaScript, and SVG**.
+A simple pilot-skills training website built with HTML, CSS, JavaScript and Canvas/SVG.
 
-> **Independent educational prototype.** AeroVector is not COMPASS™ software, is not affiliated with EPST, and is not a scientifically validated or certified tool for real-world pilot selection.
+**Open it in your browser.** It works on Windows with Chrome, Firefox or Edge. You do not need Electron or npm packages just to use the website.
 
-## Phase 1: Frontend design review
+## Open in a browser (recommended)
 
-This branch is a **frontend-first visual redesign**. The interface is intentionally separated from the existing assessment engine so the screens can be reviewed before assessment functionality is integrated.
+1. Open PowerShell inside the project folder.
+2. Run:
 
-The frontend includes:
-- **Two distinct visual themes:** Light (balanced gray cockpit workspace, default) and Dark (muted instrument-panel palette). A persistent accessible two-button switch in the header stores the selection in `aerovector.v1.theme`.
-- **Cockpit-inspired Memory preview:** fixed SVG Primary Flight Display and Navigation Display, plus the four required flight readings; values are examples, not an active test.
-- Responsive navigation for Overview, Assessments, Practice studio, Results & analytics, History, Memory recall, and Control tracking.
-- Professional, custom SVG aviation instrument displays (static previews).
-- Interactive module selection, mode selection, Memory difficulty selection, and candidate display-name settings.
-- Empty states for users without results, plus a **manually enabled and clearly labeled demonstration-data mode**.
-- Read-only compatibility with existing local browser results stored under `aerovector.v1.history`.
-- JSON export for *real* saved local results only, never for demonstration records.
-- Keyboard-accessible dialog controls and mobile navigation.
+    python -m http.server 8000
 
-**Important:** This phase does not run the Memory/Control exams or generate scores. The **View session status** action explains that live test execution is not yet connected. The original `app.js` and original scoring tests are preserved. `core.mjs` receives only two zero-duration/empty-trial scoring guards to fix pre-existing test failures; normal scoring remains unchanged.
+3. Open **http://localhost:8000** in a browser.
+4. Press Ctrl+C in PowerShell to stop the server.
 
-## Run locally
+**Alternative with Node.js:** run `npm.cmd start` on Windows. This starts a small local website at http://127.0.0.1:8000 and opens your default browser automatically. No `npm install` is required to run the browser version.
 
-No packages, build tools, database, API keys or external services are required.
+The site runs locally on your machine. It is **not yet hosted at a public internet address**.
 
-```bash
-python -m http.server 8000
-```
+## What's inside
 
-Then open **http://localhost:8000** in a browser. Alternatively, use any static HTTP server.
+- **Light and Dark themes** — change themes from the top bar.
+- **Your details** — fill in your name, institute and contact details before a scored test.
+- **Memory** — remember flight readings and fill in the missing numbers.
+- **Control Tracking** — keep a moving **blue ball inside the red circle** by holding the **arrow keys or W, A, S, D**. A single ball and clear red target replace the confusing two-part control display. Practice lasts 20 seconds; scored tests last 60 seconds.
+- **Maths** — answer flight-related number questions.
+- **Slalom** — move a small aircraft left and right through the gaps.
+- **Orientation** — choose the aircraft direction matching the readings.
+- **Task Manager** — copy flight values and respond to alerts.
+- **Keyboard controls** — change the keys in Settings.
+- **Results** — scored results are saved only in the local browser. Practice results are not recorded.
 
-## Tests
+## How to play Control Tracking
+
+1. Choose **Control the ball** (Control Tracking).
+2. Select **Practice**, then click **Start practice**.
+3. Watch the blue ball. It slowly drifts away from the center.
+4. Hold **← / A**, **→ / D**, **↑ / W** or **↓ / S** to move it back.
+5. Keep the blue ball **inside the red center circle** for as much time as possible. The right-hand panel shows your progress.
+
+A higher percentage of time in the red circle means a higher score. Change keys under **Keyboard controls** if needed.
+
+## Optional Windows desktop application
+
+The updated v2 brief also calls for a Windows executable. Electron packaging remains available, but this is **optional for local browser use**:
+
+    npm.cmd install
+    npm.cmd run desktop
+    npm.cmd run build
+
+Build outputs go to `dist/` when a build succeeds. The local browser website and Electron package share the same HTML/CSS/JavaScript code.
+
+## Test the source
 
 With Node.js installed:
 
-```bash
-node --check frontend.js
-node --test tests/*.test.mjs
-```
+    node --test tests/*.test.mjs
 
-The repository CI validates the previous scoring engine and the new frontend's page-rendering behavior.
+The project uses JavaScript for question generation, timers, movement, scoring and saving browser results. It does not need a Python backend or remote database.
 
-## File map
+## Project files
 
-| File | Purpose |
+| File | What it does |
 | --- | --- |
-| `index.html` | Phase 1 application shell and navigation |
-| `styles.css` | Base responsive layout and visual components |
-| `themes.css` | Light and dark themes, navigation styling, and cockpit instrument preview |
+| `index.html` | Top navigation and page structure |
+| `styles.css`, `themes.css`, `assessment.css` | Layout, Light/Dark themes, cockpit displays and test screens |
+| `frontend.js` | Dashboard, navigation, theme switching and results screens |
+| `assessment-runtime.mjs` | Runs the tests, reads keys, updates timers and draws Control/Slalom |
+| `assessment-core.mjs`, `core.mjs` | Generates questions and calculates scores |
+| `web-server.cjs` | Opens a local browser website without any extra packages |
+| `electron/main.cjs` | Optional desktop application |
+| `tests/` | Checks that assessment calculations and important features work |
 
-| `frontend.js` | Phase 1 pages, views and user interface behaviors |
-| `app.js` | Preserved original Memory/Control implementation, not currently loaded |
-| `core.mjs` | Preserved pure assessment logic and scoring |
-| `tests/frontend.test.mjs` | Frontend rendering and demonstration-data validation |
-| `tests/core.test.mjs` | Original scoring tests |
-
-## Next stages (after visual approval)
-
-1. Integrate real Memory practice and assessment sessions.
-2. Integrate real Control practice, animation physics and scoring.
-3. Connect the verified scored results to the redesigned dashboard and history.
-4. Complete usability, accessibility, responsive and end-to-end browser validation.
-
-LocalStorage is not a secure examination or proctoring backend. Any future attempt limits stored only in a browser are not enforceable.
-
-## Precise scope and behavior
-
-- **Theme switch:** Light and Dark buttons change the entire workspace immediately, use `aria-pressed` to communicate selection, and persist via LocalStorage. If storage is disabled, switching still works until reload. The instruments deliberately keep their own dark palette in both modes.
-- **Navigation:** The top navigation and mobile drawer switch views without a page reload; browser Back and Forward are supported using URL fragments.
-- **Memory configuration:** Practice/Assessment and Easy/Medium/Hard controls change visible settings, including the 8/6/5-second *display label*. This is a visual preview: no active timer runs. The preview values 12,500 ft, 245 KTS, 274° and 121.50 MHz are fixed examples.
-- **Control preview:** Displays a static compensatory tracking gauge. It does not drift or score until Phase 3.
-- **Result displays:** Read legacy LocalStorage data under `aerovector.v1.history`; sample records must be explicitly enabled and never replace true records. Export only exports actual saved records.
-- **Candidate preferences:** The displayed candidate name can be changed and is stored under `aerovector.preview.candidate`.
-- **Not yet implemented:** Memory round timers/recall/scoring, Control physics/keyboard handling and scored test recording. The original implementation exists separately in `app.js`, but is not connected to the approved visual shell; integration is a subsequent phase.
+**Note:** This is independent training software. The scores are defined for this project, not validated for real pilot selection, certification or licensing. LocalStorage is not secure examination storage.

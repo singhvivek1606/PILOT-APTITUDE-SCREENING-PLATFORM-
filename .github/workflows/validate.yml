@@ -1,24 +1,24 @@
-name: Validate web app
-
+name: Validate native-capable assessment app
 on:
   push:
-    branches: [main]
+    branches: [main, 'feature/**']
   pull_request:
-
 jobs:
-  tests:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check JavaScript syntax
+      - name: Check syntax
         run: |
           node --check app.js
           node --check frontend.js
           node --check core.mjs
-      - name: Test scoring and frontend rendering
+          node --check assessment-core.mjs
+          node --check assessment-runtime.mjs
+          node --check electron/main.cjs
+          node --check web-server.cjs
+      - name: Run unit tests
         run: node --test tests/*.test.mjs
