@@ -36,7 +36,7 @@ test('renders overview and all primary navigation pages', () => {
   for (const [route, expected] of [
     ['assessments','Assessment catalog'],['practice','Practice studio'],
     ['results','Results & analytics'],['history','Session history'],
-    ['memory','Memory recall'],['control','Control tracking']
+    ['memory','Flight data recall'],['control','Control tracking']
   ]) {
     app.exec("navigate('"+route+"')");
     assert.match(app.element('app-main').innerHTML,new RegExp(expected,'i'),route);
