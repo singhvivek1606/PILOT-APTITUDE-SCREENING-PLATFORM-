@@ -73,3 +73,32 @@
 .completed-report .screen-actions{justify-content:center}
 @media(max-width:1050px){.module-features{grid-template-columns:repeat(2,minmax(0,1fr))}.assessment-layout{grid-template-columns:1fr}.answer-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:650px){.module-features,.candidate-grid{grid-template-columns:1fr}.flight-data-grid{grid-template-columns:repeat(2,1fr)}.orientation-instruments{grid-template-columns:1fr}.orientation-choices{grid-template-columns:1fr}.task-numbers,.task-fields{grid-template-columns:1fr}.assessment-active-head{align-items:start;flex-direction:column}.assessment-active-meta{width:100%;justify-content:space-between}}
+
+/* Easy-to-understand Control game, based on the original single-ball tracking screen. */
+.control-demo{width:min(100%,330px);height:175px;margin:12px auto 8px;background:radial-gradient(circle at center,#1f4558,#102330);
+  border-radius:10px;border:1px solid #526e7b;position:relative;display:grid;place-items:center;overflow:hidden}
+.control-demo:before,.control-demo:after{content:'';position:absolute;background:#6080926e}
+.control-demo:before{height:1px;width:100%;top:50%}
+.control-demo:after{width:1px;height:100%;left:50%}
+.control-demo-target{position:relative;width:70px;height:70px;border:3px solid #e88083;border-radius:50%;background:#ef7a8215;z-index:1}
+.control-demo-ball{width:21px;height:21px;border-radius:50%;background:#72c0f0;box-shadow:0 0 0 2px #d5f4ff,0 0 14px #6bb8dd;
+  position:absolute;top:-8px;right:-65px}
+.control-demo-caption{text-align:center;color:var(--muted);font-size:12px;margin:4px 0 15px}
+.control-key-hint{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:14px 0 7px}
+.control-key-hint span{font-size:12px;display:inline-block;padding:8px 11px;background:var(--surface-2);
+ border:1px solid var(--line);border-radius:6px;font-weight:800;color:var(--text)}
+.control-play-layout{grid-template-columns:minmax(0,1.5fr) minmax(260px,.67fr)}
+.control-play-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.control-play-heading h3{margin:0}
+.control-game-status{border:1px solid var(--line);border-radius:5px;padding:7px 10px;color:var(--muted);font-size:11px;font-weight:800}
+.control-game-status.on-target{color:#9edbb9;background:#193f33;border-color:#3d8f69}
+.control-game-status.off-target{color:#f1c4a6;background:#4a332e;border-color:#8b6352}
+.easy-control-canvas{max-height:440px;margin:17px auto 12px}
+.control-instructions{border-radius:7px;background:var(--surface-2);border:1px solid var(--line);padding:13px 16px;
+ color:var(--text);line-height:1.6;font-size:13px}
+.control-legend{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:20px 0;color:var(--muted);font-size:12px}
+.control-legend span{display:flex;align-items:center;gap:8px}
+.control-legend i{height:13px;width:13px;border-radius:50%;display:inline-block}
+.legend-blue{background:#69b8f0;border:1px solid #cce8ff}
+.legend-red{background:#ef727533;border:3px solid #ef8084}
+@media(max-width:1050px){.control-play-layout{grid-template-columns:1fr}}

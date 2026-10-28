@@ -2,13 +2,15 @@
   "name": "aerovector-pilot-aptitude",
   "version": "2.0.0",
   "private": true,
-  "description": "AeroVector offline Windows pilot aptitude training application",
+  "description": "AeroVector pilot aptitude assessment: browser app with optional Windows desktop build",
   "main": "electron/main.cjs",
   "scripts": {
-    "start": "electron .",
+    "start": "node web-server.cjs",
     "build": "electron-builder --win nsis portable",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check frontend.js && node --check assessment-runtime.mjs && node --check assessment-core.mjs"
+    "check": "node --check frontend.js && node --check assessment-runtime.mjs && node --check assessment-core.mjs",
+    "web": "node web-server.cjs",
+    "desktop": "electron ."
   },
   "devDependencies": {
     "electron": "^35.0.0",

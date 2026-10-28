@@ -1,69 +1,75 @@
-# AeroVector — Aviation Pilot Aptitude Screening Platform
+# AeroVector — Pilot Training Tests
 
-A local-first, keyboard-operable training application based on Aviation Aptitude Hackathon Brief v2.0. HTML, CSS, JavaScript, and Canvas/SVG power the interface. Electron packages the same files as a native Windows executable.
+A simple pilot-skills training website built with HTML, CSS, JavaScript and Canvas/SVG.
 
-> Independent educational prototype inspired by COMPASS-type assessment categories. Not affiliated with EPST or COMPASS. Not validated for real airline selection, licensing or certification.
+**Open it in your browser.** It works on Windows with Chrome, Firefox or Edge. You do not need Electron or npm packages just to use the website.
 
-## Implemented modules and functionality
+## Open in a browser (recommended)
 
-- Introduction: Candidate registration with all required brief fields, validation, and Enter-to-next-field behavior.
-- Memory: Altitude, speed, heading and radio. 8/6/5-second study windows, five increasingly difficult scored rounds or practice, accuracy and response time scoring.
-- Control: Canvas horizontal needle and vertical ball, continuous held-key corrections, 20-second practice or 60-second assessment; time-on-target and deviation scoring.
-- Mathematics: Eight speed, distance, time and fuel questions, numerical response validation, accuracy and response-time scoring.
-- Slalom: Descending red/green marker pairs; left/right keyboard controls; three 90-second scored runs or one shorter practice run.
-- Orientation: Static RBI, artificial horizon and compass indications; four selectable aircraft alternatives, keyboard 1–4; ten-minute time limit.
-- Task Manager: Concurrent autopilot setting transfers and alert acknowledgment; correct entries, alert count and speed contribute to the result.
-- Settings: Remap up/down/left/right/alert keys. Duplicate mappings rejected.
-- Results and history: Scores and candidate information stored locally, per-module summaries, optional sample results clearly labeled, JSON export only of real results.
-- Two themes: Light and Dark, with cockpit instruments remaining dark in both.
-
-## Run in a browser
-
-Run the following from the project directory, with Python installed:
+1. Open PowerShell inside the project folder.
+2. Run:
 
     python -m http.server 8000
 
-Open http://localhost:8000.
+3. Open **http://localhost:8000** in a browser.
+4. Press Ctrl+C in PowerShell to stop the server.
 
-## Run as a Windows desktop app
+**Alternative with Node.js:** run `npm.cmd start` on Windows. This starts a small local website at http://127.0.0.1:8000 and opens your default browser automatically. No `npm install` is required to run the browser version.
 
-Install Node.js LTS and run:
+The site runs locally on your machine. It is **not yet hosted at a public internet address**.
 
-    npm install
-    npm start
+## What's inside
 
-Build the Windows executable or installer on a Windows machine:
+- **Light and Dark themes** — change themes from the top bar.
+- **Your details** — fill in your name, institute and contact details before a scored test.
+- **Memory** — remember flight readings and fill in the missing numbers.
+- **Control Tracking** — keep a moving **blue ball inside the red circle** by holding the **arrow keys or W, A, S, D**. A single ball and clear red target replace the confusing two-part control display. Practice lasts 20 seconds; scored tests last 60 seconds.
+- **Maths** — answer flight-related number questions.
+- **Slalom** — move a small aircraft left and right through the gaps.
+- **Orientation** — choose the aircraft direction matching the readings.
+- **Task Manager** — copy flight values and respond to alerts.
+- **Keyboard controls** — change the keys in Settings.
+- **Results** — scored results are saved only in the local browser. Practice results are not recorded.
 
-    npm run build
+## How to play Control Tracking
 
-Build artifacts are placed in the dist folder. A GitHub Actions workflow also builds Windows artifacts. The repository does not ship a prebuilt executable.
+1. Choose **Control the ball** (Control Tracking).
+2. Select **Practice**, then click **Start practice**.
+3. Watch the blue ball. It slowly drifts away from the center.
+4. Hold **← / A**, **→ / D**, **↑ / W** or **↓ / S** to move it back.
+5. Keep the blue ball **inside the red center circle** for as much time as possible. The right-hand panel shows your progress.
 
-## Tests
+A higher percentage of time in the red circle means a higher score. Change keys under **Keyboard controls** if needed.
 
-    npm run check
-    npm test
+## Optional Windows desktop application
 
-## Files
+The updated v2 brief also calls for a Windows executable. Electron packaging remains available, but this is **optional for local browser use**:
 
-| File | Role |
+    npm.cmd install
+    npm.cmd run desktop
+    npm.cmd run build
+
+Build outputs go to `dist/` when a build succeeds. The local browser website and Electron package share the same HTML/CSS/JavaScript code.
+
+## Test the source
+
+With Node.js installed:
+
+    node --test tests/*.test.mjs
+
+The project uses JavaScript for question generation, timers, movement, scoring and saving browser results. It does not need a Python backend or remote database.
+
+## Project files
+
+| File | What it does |
 | --- | --- |
-| index.html | Page shell and navigation |
-| styles.css, themes.css, assessment.css | Responsive styling, themes and assessment panels |
-| frontend.js | Navigation, dashboard, results, history and theme logic |
-| assessment-runtime.mjs | Assessment state, timers, keyboard control, Canvas animation, saved results |
-| assessment-core.mjs, core.mjs | Pure question generation, scoring, grade validation |
-| electron/main.cjs | Native Electron startup, sandboxed renderer |
-| package.json | Electron start/build commands |
-| tests | Automated checks |
+| `index.html` | Top navigation and page structure |
+| `styles.css`, `themes.css`, `assessment.css` | Layout, Light/Dark themes, cockpit displays and test screens |
+| `frontend.js` | Dashboard, navigation, theme switching and results screens |
+| `assessment-runtime.mjs` | Runs the tests, reads keys, updates timers and draws Control/Slalom |
+| `assessment-core.mjs`, `core.mjs` | Generates questions and calculates scores |
+| `web-server.cjs` | Opens a local browser website without any extra packages |
+| `electron/main.cjs` | Optional desktop application |
+| `tests/` | Checks that assessment calculations and important features work |
 
-## Controls
-
-Control: Arrow keys and, under default settings, WASD. Slalom: left/right. Orientation: number keys 1–4. Mathematics: numeric answers and Enter. Task Manager: fill autopilot values, Enter to apply and Space to acknowledge an alert (configurable in Settings).
-
-Practice is unscored and never saved as an assessment. Scored sessions require candidate registration. All stored information is local to the browser or Electron profile; LocalStorage is not tamper-resistant or suitable for formal proctoring.
-
-## Scoring
-
-Memory: 85% accuracy and 15% response-speed score. Mathematics: 85% accuracy and 15% response speed. Control: 70% time on target and 30% center proximity. Slalom: 70% gate success and 30% central position. Orientation: correct answers / total (no penalty for wrong answers). Task Manager: 55% autopilot correctness, 30% acknowledged alerts, 15% alert response speed.
-
-These are deliberately transparent hackathon scoring formulas, not validated professional selection norms. The static cockpit preview is visual context, while active assessments are dynamic screens. The Windows build and manual acceptance testing must be verified separately from JavaScript unit tests.
+**Note:** This is independent training software. The scores are defined for this project, not validated for real pilot selection, certification or licensing. LocalStorage is not secure examination storage.

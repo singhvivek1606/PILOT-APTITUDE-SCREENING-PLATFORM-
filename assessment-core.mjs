@@ -3,12 +3,12 @@ export { generateMemoryRound, difficultyForRound, studySeconds, evaluateMemoryAn
 import { clamp } from './core.mjs';
 
 export const MODULES = Object.freeze({
-  memory:{name:'Memory recall',category:'Cognitive',duration:'5 rounds'},
-  control:{name:'Control tracking',category:'Psychomotor',duration:'60 seconds'},
-  mathematics:{name:'Mathematics',category:'Cognitive',duration:'8 questions'},
-  slalom:{name:'Slalom',category:'Psychomotor',duration:'3 × 90 seconds'},
-  orientation:{name:'Orientation',category:'Spatial reasoning',duration:'10 minutes'},
-  taskmanager:{name:'Task manager',category:'Divided attention',duration:'60 seconds'}
+  memory:{name:'Memory recall',category:'Memory and focus',duration:'5 rounds'},
+  control:{name:'Control tracking',category:'Movement and control',duration:'60 seconds'},
+  mathematics:{name:'Mathematics',category:'Memory and focus',duration:'8 questions'},
+  slalom:{name:'Slalom',category:'Movement and control',duration:'3 × 90 seconds'},
+  orientation:{name:'Orientation',category:'Finding directions',duration:'10 minutes'},
+  taskmanager:{name:'Task manager',category:'Doing two things',duration:'60 seconds'}
 });
 export const DEFAULT_BINDINGS=Object.freeze({
   up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight',alert:'Space'
@@ -108,4 +108,19 @@ export function overallSummary(history=[]){
     average:rows.length?Math.round(rows.reduce((s,r)=>s+Number(r.score),0)/rows.length):null,
     modules:Object.fromEntries(Object.entries(modules).map(([k,v])=>[k,{count:v.length,average:Math.round(v.reduce((a,b)=>a+b,0)/v.length)}]))
   };
+}
+
+/**
+ * Move the control ball using held direction keys.
+ * x/y = -1 (left/up) to +1 (right/down).
+ * The same time-adjusted calculation is used for all frame rates.
+ */
+export function stepControlBall(ball,input,dt,time){
+  const cx=clamp(Number(input.x)||0,-1,1),cy=clamp(Number(input.y)||0,-1,1);
+  const driftX=Math.sin(time*1.15+1.1)*.36+Math.sin(time*2.65)*.20;
+  const driftY=Math.cos(time*1.08+.6)*.34+Math.sin(time*2.14)*.20;
+  const friction=Math.exp(-2.6*dt);
+  const vx=clamp(((ball.vx||0)+(driftX+cx*3.5)*dt)*friction,-1.35,1.35);
+  const vy=clamp(((ball.vy||0)+(driftY+cy*3.5)*dt)*friction,-1.35,1.35);
+  return {x:clamp(ball.x+vx*dt,-.92,.92),y:clamp(ball.y+vy*dt,-.92,.92),vx,vy};
 }

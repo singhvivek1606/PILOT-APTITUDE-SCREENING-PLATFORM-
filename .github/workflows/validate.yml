@@ -19,5 +19,6 @@ jobs:
           node --check assessment-core.mjs
           node --check assessment-runtime.mjs
           node --check electron/main.cjs
+          node --check web-server.cjs
       - name: Run unit tests
         run: node --test tests/*.test.mjs

@@ -2,7 +2,7 @@ import {
  MODULES,DEFAULT_BINDINGS,normalizeKey,validateBindings,generateMemoryRound,difficultyForRound,studySeconds,
  evaluateMemoryAnswers,summarizeMemoryRounds,generateMathQuestion,gradeMathAnswer,
  generateOrientation,generateTask,gradeTask,scoreAccuracySpeed,computeTrackingScore,computeSlalomScore,
- overallSummary,clamp
+ overallSummary,stepControlBall,clamp
 } from './assessment-core.mjs';
 const HISTORY_KEY='aerovector.v1.history';
 const CANDIDATE_KEY='aerovector.v2.candidate';
@@ -54,16 +54,16 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
  }
  function moduleDescription(module){
   return ({
-    memory:'Recall altitude, airspeed, heading and radio frequency after a short study period.',
-    control:'Keep the horizontal needle and vertical ball centered with directional keys.',
-    mathematics:'Solve applied speed, distance, time and fuel problems accurately.',
-    slalom:'Steer an aircraft marker through descending pairs of colored gates.',
-    orientation:'Match instrument readings to an aircraft orientation.',
-    taskmanager:'Update autopilot values while also responding to alerts.'
+    memory:'Remember four flight readings, then enter the missing numbers.',
+    control:'Keep the moving blue ball inside the red center circle.',
+    mathematics:'Answer simple maths questions about speed, distance, time and fuel.',
+    slalom:'Move the small aircraft left and right through each gap.',
+    orientation:'Look at the flight readings and pick the matching aircraft direction.',
+    taskmanager:'Copy new flight numbers and press the key when a warning appears.'
   })[module];
  }
  function moduleHome(){
-  return labelPage('Assessment modules','COMPLETE TEST BATTERY','Select a module, read its instructions and begin a keyboard-operated session.')
+  return labelPage('Choose a test','YOUR PILOT TRAINING TESTS','Choose a test. Read the instructions, then try a practice round first.')
     +'<div class="module-features">'+moduleList.map(moduleTile).join('')+'</div>';
  }
  function registration(){
@@ -87,24 +87,24 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
     +btn('Restore defaults','reset-bindings','')+'</section>';
  }
  const instructionLines={
-  memory:['Remember all four flight parameters when displayed.','After the study window, enter the requested missing values.','An assessment has five rounds with progressively harder questions.'],
-  control:['Use the displayed directional keys to recenter both instruments.','The circular needle responds to horizontal input; the ball responds to vertical input.','Practice is 20 seconds; scored assessment lasts 60 seconds.'],
-  mathematics:['Solve eight aviation arithmetic problems.','Enter the numerical answer without units and press Enter.','Accuracy and response speed determine the score.'],
-  slalom:['Use left/right keys to steer the aircraft symbol.','Pass between the paired red/green gates as they move down the screen.','Scored assessment includes three 90-second runs. Practice lasts 30 seconds.'],
-  orientation:['Interpret the relative bearing indicator, artificial horizon and compass.','Choose which of four aircraft configurations matches the instruments.','The 10-minute assessment awards one point per correct answer, without penalties.'],
-  taskmanager:['Copy incoming altitude, heading and speed into autopilot settings.','Press the mapped alert acknowledgment key when an alert appears.','Both tasks run simultaneously for 60 seconds.']
+  memory:['Look at the four flight numbers and remember them.','After some numbers disappear, type what you remember.','The scored test has five rounds. The numbers are shown for less time as you progress.'],
+  control:['The blue ball moves on its own.','Hold arrow keys or W, A, S, D to guide the ball back inside the red circle.','Stay inside the circle as long as you can. Practice is 20 seconds. The scored test is 60 seconds.'],
+  mathematics:['Read each question.','Type only the number and press Enter.','Correct and quick answers get more points.'],
+  slalom:['Use left and right keys to move the aircraft symbol.','Pass between the red and green markers.','Practice first, then try three timed rounds.'],
+  orientation:['Look at the flight direction readings.','Press 1, 2, 3 or 4 to choose the matching aircraft.','Correct answers earn points; wrong answers do not lose points.'],
+  taskmanager:['Read the new altitude, direction and speed.','Type the numbers into the boxes and press Apply.','When the alert shows up, press Space (or your chosen alert key).']
  };
  function setupPage(module){
   const m=MODULES[module];
   if(!m)return moduleHome();
   const mode=session?.module===module?session.mode:selectedMode;
   return labelPage(m.name,'ASSESSMENT / '+m.category.toUpperCase(),moduleDescription(module))
-   +'<div class="assessment-layout"><section class="panel"><div class="section-bar"><h2>Session configuration</h2>'+pill('KEYBOARD OPERATED')+'</div>'
-   +'<div class="mode-switch"><button type="button" data-test-mode="practice" class="mode-panel '+(mode==='practice'?'selected':'')+'" aria-pressed="'+(mode==='practice')+'">Practice mode<small>Unscored trial</small></button>'
-   +'<button type="button" data-test-mode="assessment" class="mode-panel '+(mode==='assessment'?'selected':'')+'" aria-pressed="'+(mode==='assessment')+'">Assessment mode<small>Results saved locally</small></button></div>'
-   +(module==='memory'?'<label class="form-label" for="memory-difficulty">Starting difficulty</label><select id="memory-difficulty" class="field"><option value="easy">Easy — 8 s</option><option value="medium">Medium — 6 s</option><option value="hard">Hard — 5 s</option></select>':'')
-   +'<div class="screen-actions">'+btn('Begin '+(mode==='practice'?'practice':'assessment')+' →','start')+'</div><p class="field-help">Your current bindings: '+escape(bindings.left)+' / '+escape(bindings.right)+' / '+escape(bindings.up)+' / '+escape(bindings.down)+' · Configure in Settings.</p></section>'
-   +'<section class="panel"><h3>Instructions</h3><ol class="plain-steps">'+instructionLines[module].map(i=>'<li>'+escape(i)+'</li>').join('')+'</ol><p class="field-help">These are training tasks, not certified airline selection tests.</p></section></div>';
+   +'<div class="assessment-layout"><section class="panel"><div class="section-bar"><h2>Choose how to start</h2>'+pill('USE YOUR KEYBOARD')+'</div>'
+   +'<div class="mode-switch"><button type="button" data-test-mode="practice" class="mode-panel '+(mode==='practice'?'selected':'')+'" aria-pressed="'+(mode==='practice')+'">Practice<small>Try it first; your result is not saved.</small></button>'
+   +'<button type="button" data-test-mode="assessment" class="mode-panel '+(mode==='assessment'?'selected':'')+'" aria-pressed="'+(mode==='assessment')+'">Scored test<small>Your result is saved in this browser.</small></button></div>'
+   +(module==='memory'?'<label class="form-label" for="memory-difficulty">Choose a level</label><select id="memory-difficulty" class="field"><option value="easy">Easy — 8 s</option><option value="medium">Medium — 6 s</option><option value="hard">Hard — 5 s</option></select>':'')
+   +'<div class="screen-actions">'+btn('Start '+(mode==='practice'?'practice':'scored test')+' →','start')+'</div><p class="field-help">Your keys: '+escape(bindings.left)+' / '+escape(bindings.right)+' / '+escape(bindings.up)+' / '+escape(bindings.down)+' · Change them in Settings.</p></section>'
+   +'<section class="panel"><h3>How to play</h3>'+(module==='control'?'<div class="control-demo" aria-label="Blue ball and red circle preview"><span class="control-demo-target"><span class="control-demo-ball"></span></span></div><p class="control-demo-caption">Bring the blue ball into the red circle.</p>':'')+'<ol class="plain-steps">'+instructionLines[module].map(i=>'<li>'+escape(i)+'</li>').join('')+'</ol>'+(module==='control'?'<div class="control-key-hint"><span>← / A</span><span>↑ / W</span><span>↓ / S</span><span>→ / D</span></div>':'')+'<p class="field-help">This is training software, not an official pilot exam.</p></section></div>';
  }
  function currentQuestion(){
   if(!session)return '';
@@ -159,11 +159,20 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
    +'<button type="button" class="button button-outline" data-test-action="ack-alert">Acknowledge ('+escape(bindings.alert)+')</button><p class="field-help">Alerts acknowledged: <span id="alerts-ok">'+s.alertsOk+'</span> / <span id="alerts-issued">'+s.alertsIssued+'</span></p></section></div>';
  }
  function controlView(s){
-  return commonHead(s,'Keep the blue needle and blue ball aligned with the red target marks. Use '+bindings.left+' / '+bindings.right+' / '+bindings.up+' / '+bindings.down+'.')
-   +'<div class="assessment-layout"><section class="panel"><h3>COMPENSATORY TRACKING</h3><canvas class="assessment-canvas" width="620" height="405" id="control-canvas" tabindex="0" aria-label="Two-axis control tracking instrument"></canvas>'
-   +'<p class="field-help">Hold the mapped direction keys for continuous corrections. Instrument movement uses frame-time-adjusted physics.</p></section>'
-   +'<section class="panel"><h3>Live performance</h3><div class="runtime-stats"><div>Time on target <strong id="live-target">0%</strong></div><div>Mean deviation <strong id="live-deviation">—</strong></div><div>Corrections <strong id="live-corrections">0</strong></div></div>'
-   +'<p class="field-help">Target: both indicators within the central tolerance. Scoring uses 70% time-on-target plus 30% proximity.</p>'+btn('End trial','finish')+'</section></div>';
+  return commonHead(s,'Move the BLUE BALL into the RED CIRCLE. Use arrow keys or W, A, S, D.')
+   +'<div class="assessment-layout control-play-layout"><section class="panel">'
+   +'<div class="control-play-heading"><h3>Keep the ball in the middle</h3><span class="control-game-status" id="control-live-status">Guide the ball to the red circle</span></div>'
+   +'<canvas class="assessment-canvas easy-control-canvas" width="620" height="440" id="control-canvas" tabindex="0" aria-label="Blue moving ball and red center target. Use arrow keys or WASD to steer."></canvas>'
+   +'<div class="control-instructions"><strong>How to play:</strong> The blue ball moves by itself. Hold a direction key to bring it back. Keep it in the red circle for as long as possible.</div>'
+   +'<div class="control-key-hint"><span>← / A &nbsp; Left</span><span>↑ / W &nbsp; Up</span><span>↓ / S &nbsp; Down</span><span>→ / D &nbsp; Right</span></div>'
+   +'<p class="field-help">Tip: Use small corrections. Release the keys when the ball reaches the center.</p></section>'
+   +'<section class="panel"><h3>Your progress</h3><div class="runtime-stats">'
+   +'<div>Time in the circle <strong id="live-target">0%</strong></div>'
+   +'<div>Average distance from center <strong id="live-deviation">—</strong></div>'
+   +'<div>Key presses <strong id="live-corrections">0</strong></div></div>'
+   +'<p class="field-help">More time in the center gives you a higher score.</p>'
+   +'<div class="control-legend"><span><i class="legend-blue"></i> Moving blue ball</span><span><i class="legend-red"></i> Red target</span></div>'
+   +btn('Stop this round','finish')+'</section></div>';
  }
  function slalomView(s){
   return commonHead(s,'Keep the aircraft between moving colored marker pairs. Steer with '+bindings.left+' and '+bindings.right+'.')
@@ -212,7 +221,7 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
    rerender();startTimer();
   }else if(module==='control'){
    base.remaining=mode==='practice'?20:60;base.duration=base.remaining;
-   base.x=.37;base.y=-.28;base.vx=0;base.vy=0;base.totalTime=0;base.hitTime=0;base.deviationArea=0;base.corrections=0;
+   base.x=.40;base.y=-.20;base.vx=0;base.vy=0;base.totalTime=0;base.hitTime=0;base.deviationArea=0;base.corrections=0;
    rerender();startAnimation();
   }else if(module==='slalom'){
    base.run=0;base.remaining=mode==='practice'?30:90;base.duration=base.remaining;base.runs=[];
@@ -323,20 +332,26 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
  function initSlalomRun(s){
   s.x=0;s.gates=[];s.timeToGate=0;s.hits=0;s.totalGates=0;s.proximitySum=0;s.elapsed=0;s.remaining=s.duration;
  }
- function controlStep(s,dt,t){
-  const left=held.has('left'),right=held.has('right'),up=held.has('up'),down=held.has('down');
-  const cx=(right?1:0)-(left?1:0),cy=(down?1:0)-(up?1:0);
-  const noiseX=Math.sin(t*1.2)*.18+Math.sin(t*2.9)*.11,noiseY=Math.cos(t*.92)*.14+Math.sin(t*2.2)*.12;
-  s.vx=clamp((s.vx+(noiseX+cx*2.9-s.x*.22)*dt)*Math.exp(-1.7*dt),-1.3,1.3);
-  s.vy=clamp((s.vy+(noiseY+cy*2.9-s.y*.22)*dt)*Math.exp(-1.7*dt),-1.3,1.3);
-  s.x=clamp(s.x+s.vx*dt,-1,1);s.y=clamp(s.y+s.vy*dt,-1,1);
-  const deviation=Math.sqrt((s.x*s.x+s.y*s.y)/2);
-  s.totalTime+=dt;s.deviationArea+=deviation*dt;
-  if(Math.abs(s.x)<.16 && Math.abs(s.y)<.16)s.hitTime+=dt;
-  const pct=document.getElementById('live-target'),dev=document.getElementById('live-deviation'),cor=document.getElementById('live-corrections');
-  if(pct)pct.textContent=Math.round(100*s.hitTime/s.totalTime)+'%';
-  if(dev)dev.textContent=(100*s.deviationArea/s.totalTime).toFixed(1)+'%';
-  if(cor)cor.textContent=s.corrections;
+ function controlStep(s,dt,t,wallDt=dt){
+  const cx=(held.has('right')?1:0)-(held.has('left')?1:0);
+  const cy=(held.has('down')?1:0)-(held.has('up')?1:0);
+  const next=stepControlBall(s,{x:cx,y:cy},dt,t);
+  Object.assign(s,next);
+  const distance=Math.hypot(s.x,s.y);
+  const counted=wallDt>.25?wallDt:dt;
+  s.totalTime+=counted;
+  s.deviationArea+=(wallDt>.25?1:Math.min(1,distance))*counted;
+  if(wallDt<=.25&&distance<=.19)s.hitTime+=dt;
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+  set('live-target',Math.round(100*s.hitTime/Math.max(.001,s.totalTime))+'%');
+  set('live-deviation',(100*s.deviationArea/Math.max(.001,s.totalTime)).toFixed(1)+'%');
+  set('live-corrections',s.corrections);
+  const label=document.getElementById('control-live-status');
+  if(label){
+    const inside=distance<=.19;
+    label.textContent=inside?'Great! Keep it here!':'Outside the circle — steer back';
+    label.className='control-game-status '+(inside?'on-target':'off-target');
+  }
  }
  function slalomStep(s,dt){
   s.timeToGate-=dt;
@@ -363,21 +378,29 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
  function drawControl(s){
   const canvas=document.getElementById('control-canvas');if(!canvas)return;
   const ctx=canvas.getContext('2d');if(!ctx)return;
-  const w=canvas.width,h=canvas.height;ctx.fillStyle='#0c1a23';ctx.fillRect(0,0,w,h);
-  const centerX=220,centerY=196,radius=137;
-  ctx.strokeStyle='#78919c';ctx.lineWidth=1;
-  for(const r of [35,75,115,137]){ctx.beginPath();ctx.arc(centerX,centerY,r,0,Math.PI*2);ctx.stroke()}
-  ctx.strokeStyle='#425c68';ctx.beginPath();ctx.moveTo(centerX-radius,centerY);ctx.lineTo(centerX+radius,centerY);ctx.moveTo(centerX,centerY-radius);ctx.lineTo(centerX,centerY+radius);ctx.stroke();
-  ctx.strokeStyle='#db6860';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(centerX-15,centerY);ctx.lineTo(centerX+15,centerY);ctx.stroke();
-  const angle=s.x*Math.PI*.55-Math.PI/2;
-  ctx.strokeStyle='#7abbe5';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(centerX,centerY);ctx.lineTo(centerX+Math.cos(angle)*108,centerY+Math.sin(angle)*108);ctx.stroke();
-  ctx.fillStyle='#74b7e0';ctx.beginPath();ctx.arc(centerX,centerY,7,0,2*Math.PI);ctx.fill();
-  const barX=420,barTop=55,barBottom=337,ballY=(barTop+barBottom)/2+s.y*110;
-  ctx.fillStyle='#1e303c';ctx.fillRect(barX,barTop,78,barBottom-barTop);
-  ctx.strokeStyle='#6d8a98';ctx.lineWidth=2;ctx.strokeRect(barX,barTop,78,barBottom-barTop);
-  ctx.strokeStyle='#d76861';ctx.beginPath();ctx.moveTo(barX-8,(barTop+barBottom)/2);ctx.lineTo(barX+86,(barTop+barBottom)/2);ctx.stroke();
-  ctx.fillStyle='#71bde6';ctx.beginPath();ctx.arc(barX+39,ballY,11,0,Math.PI*2);ctx.fill();
-  ctx.font='13px system-ui';ctx.fillStyle='#afc4cf';ctx.fillText('ROUND DIAL',164,370);ctx.fillText('VERTICAL AXIS',406,370);
+  const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#102332';ctx.fillRect(0,0,w,h);
+  const cx=w/2,cy=h/2,radius=Math.min(w*.35,h*.40);
+  const gradient=ctx.createRadialGradient(cx,cy,8,cx,cy,radius*1.2);
+  gradient.addColorStop(0,'#193b50');gradient.addColorStop(1,'#0e202c');
+  ctx.beginPath();ctx.arc(cx,cy,radius*1.12,0,Math.PI*2);ctx.fillStyle=gradient;ctx.fill();
+  ctx.lineWidth=1;
+  for(let i=1;i<=4;i++){
+    ctx.strokeStyle=i===4?'#7c9ca9':'#365466';
+    ctx.beginPath();ctx.arc(cx,cy,radius*i/4,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.strokeStyle='#54778b';ctx.beginPath();ctx.moveTo(cx-radius*1.08,cy);ctx.lineTo(cx+radius*1.08,cy);
+  ctx.moveTo(cx,cy-radius*1.08);ctx.lineTo(cx,cy+radius*1.08);ctx.stroke();
+  ctx.fillStyle='#ec6d6e18';ctx.strokeStyle='#f08082';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(cx,cy,radius*.19,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx-9,cy);ctx.lineTo(cx+9,cy);ctx.moveTo(cx,cy-9);ctx.lineTo(cx,cy+9);ctx.stroke();
+  const x=cx+s.x*radius,y=cy+s.y*radius;
+  ctx.strokeStyle='#7ebbe176';ctx.lineWidth=1.7;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.stroke();
+  ctx.shadowColor='#73bde9';ctx.shadowBlur=14;ctx.fillStyle='#69b8f0';
+  ctx.beginPath();ctx.arc(x,y,11,0,2*Math.PI);ctx.fill();
+  ctx.shadowBlur=0;ctx.strokeStyle='#e3f4ff';ctx.lineWidth=2;ctx.stroke();
+  ctx.font='12px system-ui';ctx.textAlign='left';ctx.fillStyle='#b9d0db';ctx.fillText('KEEP THE BLUE BALL IN THE RED CIRCLE',18,24);
+  ctx.textAlign='center';ctx.fillStyle='#92b3c1';ctx.fillText('ARROW KEYS OR W A S D',cx,h-17);
  }
  function drawSlalom(s){
   const canvas=document.getElementById('slalom-canvas');if(!canvas)return;
@@ -402,9 +425,9 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
   const update=(now)=>{
    if(session!==s||s.phase!=='running')return;
    if(!lastFrame)lastFrame=now;
-   const dt=clamp((now-lastFrame)/1000,0,.05);lastFrame=now;
+   const wallDt=Math.max(0,(now-lastFrame)/1000);const dt=clamp(wallDt,0,.05);lastFrame=now;
    s.elapsed=(now-s.animationStarted)/1000;s.remaining=Math.max(0,s.duration-s.elapsed);
-   if(s.module==='control'){controlStep(s,dt,s.elapsed);drawControl(s)}
+   if(s.module==='control'){controlStep(s,dt,s.elapsed,wallDt);drawControl(s)}
    if(s.module==='slalom'){slalomStep(s,dt);drawSlalom(s)}
    const clock=document.getElementById('assessment-clock');if(clock)clock.textContent=formatClock(s.remaining);
    if(s.remaining<=0){finishMotion();return}

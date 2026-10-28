@@ -12,8 +12,8 @@
       document.documentElement.dataset.theme = 'light';
     }
   </script>
-  <meta name="description" content="AeroVector — an independent aviation aptitude assessment workspace.">
-  <title>AeroVector | Assessment Workspace</title>
+  <meta name="description" content="AeroVector — practice pilot skills in your browser.">
+  <title>AeroVector | Pilot Training Tests</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./themes.css">
   <link rel="stylesheet" href="./assessment.css">
@@ -25,33 +25,33 @@
         <span class="brand-symbol" aria-hidden="true">
           <svg viewBox="0 0 42 42" fill="none"><path d="M21 5L36 35 21 27 6 35 21 5Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><path d="M21 17V34" stroke="currentColor" stroke-width="1.4" opacity=".55"/></svg>
         </span>
-        <span class="brand-text"><strong>AEROVECTOR</strong><small>ASSESSMENT WORKSPACE</small></span>
+        <span class="brand-text"><strong>AEROVECTOR</strong><small>PILOT TRAINING</small></span>
       </a>
       <div class="sidebar-scroll">
         <div class="nav-heading">WORKSPACE</div>
         <nav class="primary-nav" id="primary-nav">
           <button type="button" class="nav-item active" data-route="overview"><span data-icon="layout"></span>Overview</button>
           <button type="button" class="nav-item" data-route="assessments"><span data-icon="layers"></span>Assessments</button>
-          <button type="button" class="nav-item" data-route="practice"><span data-icon="target"></span>Practice studio</button>
+          <button type="button" class="nav-item" data-route="practice"><span data-icon="target"></span>Practice tests</button>
           <div class="nav-heading nav-break">PERFORMANCE</div>
-          <button type="button" class="nav-item" data-route="results"><span data-icon="chart"></span>Results & analytics</button>
-          <button type="button" class="nav-item" data-route="history"><span data-icon="clock"></span>Session history</button>
-          <button type="button" class="nav-item" data-route="registration"><span data-icon="user"></span>Candidate registration</button>
-          <button type="button" class="nav-item" data-route="settings"><span data-icon="shield"></span>Keyboard settings</button>
+          <button type="button" class="nav-item" data-route="results"><span data-icon="chart"></span>Results</button>
+          <button type="button" class="nav-item" data-route="history"><span data-icon="clock"></span>Test history</button>
+          <button type="button" class="nav-item" data-route="registration"><span data-icon="user"></span>Your details</button>
+          <button type="button" class="nav-item" data-route="settings"><span data-icon="shield"></span>Keyboard controls</button>
         </nav>
         <div class="sidebar-divider"></div>
-        <div class="nav-heading">ASSESSMENT MODULES</div>
+        <div class="nav-heading">TESTS</div>
         <nav class="primary-nav" aria-label="Assessment modules">
-          <button type="button" class="nav-item module-nav" data-route="memory"><span class="module-number">01</span>Memory recall</button>
-          <button type="button" class="nav-item module-nav" data-route="control"><span class="module-number">02</span>Control tracking</button>
-          <button type="button" class="nav-item module-nav" data-route="mathematics"><span class="module-number">03</span>Mathematics</button>
-          <button type="button" class="nav-item module-nav" data-route="slalom"><span class="module-number">04</span>Slalom</button>
-          <button type="button" class="nav-item module-nav" data-route="orientation"><span class="module-number">05</span>Orientation</button>
-          <button type="button" class="nav-item module-nav" data-route="taskmanager"><span class="module-number">06</span>Task manager</button>
+          <button type="button" class="nav-item module-nav" data-route="memory"><span class="module-number">01</span>Memory</button>
+          <button type="button" class="nav-item module-nav" data-route="control"><span class="module-number">02</span>Control the ball</button>
+          <button type="button" class="nav-item module-nav" data-route="mathematics"><span class="module-number">03</span>Maths</button>
+          <button type="button" class="nav-item module-nav" data-route="slalom"><span class="module-number">04</span>Steer through gaps</button>
+          <button type="button" class="nav-item module-nav" data-route="orientation"><span class="module-number">05</span>Find the direction</button>
+          <button type="button" class="nav-item module-nav" data-route="taskmanager"><span class="module-number">06</span>Two tasks at once</button>
         </nav>
       </div>
       <div class="side-bottom">
-        <div class="operational-panel"><span class="operational-label"><span class="live-dot"></span> PLATFORM STATUS</span><strong>Interface preview</strong><small>Phase 01 / Visual environment</small></div>
+        <div class="operational-panel"><span class="operational-label"><span class="live-dot"></span> PLATFORM STATUS</span><strong>Ready for practice</strong><small>Use a keyboard to begin</small></div>
         <div class="side-legal">Independent training prototype.<br>Not affiliated with COMPASS™ or EPST.</div>
       </div>
     </aside>
@@ -65,8 +65,8 @@
           </a>
           <nav class="desktop-navigation" aria-label="Main sections">
             <button type="button" class="nav-item" data-route="overview">Overview</button>
-            <button type="button" class="nav-item" data-route="memory">Memory assessment</button>
-            <button type="button" class="nav-item" data-route="control">Control tracking</button>
+            <button type="button" class="nav-item" data-route="memory">Memory</button>
+            <button type="button" class="nav-item" data-route="control">Control the ball</button>
             <button type="button" class="nav-item" data-route="assessments">Assessments</button>
             <button type="button" class="nav-item" data-route="results">Results</button>
             <button type="button" class="nav-item" data-route="history">History</button>
@@ -80,13 +80,13 @@
             <button type="button" class="theme-option" data-theme-choice="light" aria-pressed="true">Light</button>
             <button type="button" class="theme-option" data-theme-choice="dark" aria-pressed="false">Dark</button>
           </div>
-          <span class="environment-pill"><span class="live-dot"></span> TRAINING SYSTEM PREVIEW</span>
+          <span class="environment-pill"><span class="live-dot"></span> BROWSER APP</span>
           <span class="topbar-separator"></span>
           <button class="profile-control" type="button" id="profile-button" aria-label="Candidate preferences"><span class="avatar" id="profile-avatar">C</span><span class="profile-copy"><strong id="profile-name">Candidate</strong><small>Local session</small></span><span data-icon="chevron-down"></span></button>
         </div>
       </header>
       <main id="app-main" class="main-content" tabindex="-1"></main>
-      <footer class="footer"><span>© 2026 AeroVector · Pilot Aptitude Lab</span><span>Independent educational test battery · Local results only</span></footer>
+      <footer class="footer"><span>© 2026 AeroVector · Pilot Aptitude Lab</span><span>Pilot training practice · Results saved on this device</span></footer>
     </div>
   </div>
   <div class="mobile-shade" id="mobile-shade" hidden></div>
