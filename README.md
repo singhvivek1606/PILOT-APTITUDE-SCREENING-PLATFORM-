@@ -1,76 +1,69 @@
-# AeroVector — Pilot Aptitude Screening Platform
+# AeroVector — Aviation Pilot Aptitude Screening Platform
 
-Independent aviation-inspired aptitude screening prototype, built entirely with **HTML, CSS, vanilla JavaScript, and SVG**.
+A local-first, keyboard-operable training application based on Aviation Aptitude Hackathon Brief v2.0. HTML, CSS, JavaScript, and Canvas/SVG power the interface. Electron packages the same files as a native Windows executable.
 
-> **Independent educational prototype.** AeroVector is not COMPASS™ software, is not affiliated with EPST, and is not a scientifically validated or certified tool for real-world pilot selection.
+> Independent educational prototype inspired by COMPASS-type assessment categories. Not affiliated with EPST or COMPASS. Not validated for real airline selection, licensing or certification.
 
-## Phase 1: Frontend design review
+## Implemented modules and functionality
 
-This branch is a **frontend-first visual redesign**. The interface is intentionally separated from the existing assessment engine so the screens can be reviewed before assessment functionality is integrated.
+- Introduction: Candidate registration with all required brief fields, validation, and Enter-to-next-field behavior.
+- Memory: Altitude, speed, heading and radio. 8/6/5-second study windows, five increasingly difficult scored rounds or practice, accuracy and response time scoring.
+- Control: Canvas horizontal needle and vertical ball, continuous held-key corrections, 20-second practice or 60-second assessment; time-on-target and deviation scoring.
+- Mathematics: Eight speed, distance, time and fuel questions, numerical response validation, accuracy and response-time scoring.
+- Slalom: Descending red/green marker pairs; left/right keyboard controls; three 90-second scored runs or one shorter practice run.
+- Orientation: Static RBI, artificial horizon and compass indications; four selectable aircraft alternatives, keyboard 1–4; ten-minute time limit.
+- Task Manager: Concurrent autopilot setting transfers and alert acknowledgment; correct entries, alert count and speed contribute to the result.
+- Settings: Remap up/down/left/right/alert keys. Duplicate mappings rejected.
+- Results and history: Scores and candidate information stored locally, per-module summaries, optional sample results clearly labeled, JSON export only of real results.
+- Two themes: Light and Dark, with cockpit instruments remaining dark in both.
 
-The frontend includes:
-- **Two distinct visual themes:** Light (balanced gray cockpit workspace, default) and Dark (muted instrument-panel palette). A persistent accessible two-button switch in the header stores the selection in `aerovector.v1.theme`.
-- **Cockpit-inspired Memory preview:** fixed SVG Primary Flight Display and Navigation Display, plus the four required flight readings; values are examples, not an active test.
-- Responsive navigation for Overview, Assessments, Practice studio, Results & analytics, History, Memory recall, and Control tracking.
-- Professional, custom SVG aviation instrument displays (static previews).
-- Interactive module selection, mode selection, Memory difficulty selection, and candidate display-name settings.
-- Empty states for users without results, plus a **manually enabled and clearly labeled demonstration-data mode**.
-- Read-only compatibility with existing local browser results stored under `aerovector.v1.history`.
-- JSON export for *real* saved local results only, never for demonstration records.
-- Keyboard-accessible dialog controls and mobile navigation.
+## Run in a browser
 
-**Important:** This phase does not run the Memory/Control exams or generate scores. The **View session status** action explains that live test execution is not yet connected. The original `app.js` and original scoring tests are preserved. `core.mjs` receives only two zero-duration/empty-trial scoring guards to fix pre-existing test failures; normal scoring remains unchanged.
+Run the following from the project directory, with Python installed:
 
-## Run locally
+    python -m http.server 8000
 
-No packages, build tools, database, API keys or external services are required.
+Open http://localhost:8000.
 
-```bash
-python -m http.server 8000
-```
+## Run as a Windows desktop app
 
-Then open **http://localhost:8000** in a browser. Alternatively, use any static HTTP server.
+Install Node.js LTS and run:
+
+    npm install
+    npm start
+
+Build the Windows executable or installer on a Windows machine:
+
+    npm run build
+
+Build artifacts are placed in the dist folder. A GitHub Actions workflow also builds Windows artifacts. The repository does not ship a prebuilt executable.
 
 ## Tests
 
-With Node.js installed:
+    npm run check
+    npm test
 
-```bash
-node --check frontend.js
-node --test tests/*.test.mjs
-```
+## Files
 
-The repository CI validates the previous scoring engine and the new frontend's page-rendering behavior.
-
-## File map
-
-| File | Purpose |
+| File | Role |
 | --- | --- |
-| `index.html` | Phase 1 application shell and navigation |
-| `styles.css` | Base responsive layout and visual components |
-| `themes.css` | Light and dark themes, navigation styling, and cockpit instrument preview |
+| index.html | Page shell and navigation |
+| styles.css, themes.css, assessment.css | Responsive styling, themes and assessment panels |
+| frontend.js | Navigation, dashboard, results, history and theme logic |
+| assessment-runtime.mjs | Assessment state, timers, keyboard control, Canvas animation, saved results |
+| assessment-core.mjs, core.mjs | Pure question generation, scoring, grade validation |
+| electron/main.cjs | Native Electron startup, sandboxed renderer |
+| package.json | Electron start/build commands |
+| tests | Automated checks |
 
-| `frontend.js` | Phase 1 pages, views and user interface behaviors |
-| `app.js` | Preserved original Memory/Control implementation, not currently loaded |
-| `core.mjs` | Preserved pure assessment logic and scoring |
-| `tests/frontend.test.mjs` | Frontend rendering and demonstration-data validation |
-| `tests/core.test.mjs` | Original scoring tests |
+## Controls
 
-## Next stages (after visual approval)
+Control: Arrow keys and, under default settings, WASD. Slalom: left/right. Orientation: number keys 1–4. Mathematics: numeric answers and Enter. Task Manager: fill autopilot values, Enter to apply and Space to acknowledge an alert (configurable in Settings).
 
-1. Integrate real Memory practice and assessment sessions.
-2. Integrate real Control practice, animation physics and scoring.
-3. Connect the verified scored results to the redesigned dashboard and history.
-4. Complete usability, accessibility, responsive and end-to-end browser validation.
+Practice is unscored and never saved as an assessment. Scored sessions require candidate registration. All stored information is local to the browser or Electron profile; LocalStorage is not tamper-resistant or suitable for formal proctoring.
 
-LocalStorage is not a secure examination or proctoring backend. Any future attempt limits stored only in a browser are not enforceable.
+## Scoring
 
-## Precise scope and behavior
+Memory: 85% accuracy and 15% response-speed score. Mathematics: 85% accuracy and 15% response speed. Control: 70% time on target and 30% center proximity. Slalom: 70% gate success and 30% central position. Orientation: correct answers / total (no penalty for wrong answers). Task Manager: 55% autopilot correctness, 30% acknowledged alerts, 15% alert response speed.
 
-- **Theme switch:** Light and Dark buttons change the entire workspace immediately, use `aria-pressed` to communicate selection, and persist via LocalStorage. If storage is disabled, switching still works until reload. The instruments deliberately keep their own dark palette in both modes.
-- **Navigation:** The top navigation and mobile drawer switch views without a page reload; browser Back and Forward are supported using URL fragments.
-- **Memory configuration:** Practice/Assessment and Easy/Medium/Hard controls change visible settings, including the 8/6/5-second *display label*. This is a visual preview: no active timer runs. The preview values 12,500 ft, 245 KTS, 274° and 121.50 MHz are fixed examples.
-- **Control preview:** Displays a static compensatory tracking gauge. It does not drift or score until Phase 3.
-- **Result displays:** Read legacy LocalStorage data under `aerovector.v1.history`; sample records must be explicitly enabled and never replace true records. Export only exports actual saved records.
-- **Candidate preferences:** The displayed candidate name can be changed and is stored under `aerovector.preview.candidate`.
-- **Not yet implemented:** Memory round timers/recall/scoring, Control physics/keyboard handling and scored test recording. The original implementation exists separately in `app.js`, but is not connected to the approved visual shell; integration is a subsequent phase.
+These are deliberately transparent hackathon scoring formulas, not validated professional selection norms. The static cockpit preview is visual context, while active assessments are dynamic screens. The Windows build and manual acceptance testing must be verified separately from JavaScript unit tests.

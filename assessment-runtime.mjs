@@ -149,7 +149,7 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
   return commonHead(s,'Interpret the three static instrument readings and choose the matching aircraft.')
    +'<section class="panel"><span class="eyebrow">INSTRUMENT INTERPRETATION / '+(s.index+1)+' OF '+s.total+'</span>'
    +'<div class="orientation-instruments"><div><small>RELATIVE BEARING</small><strong>'+q.bearing+'°</strong></div><div><small>ARTIFICIAL HORIZON</small><strong>'+(q.pitch>=0?'+':'')+q.pitch+'°</strong></div><div><small>COMPASS</small><strong>'+q.heading+'°</strong></div></div>'
-   +'<h3>Select the matching aircraft (keyboard: 1–4)</h3><div class="orientation-choices">'+q.options.map((o,i)=>'<button type="button" data-orient-choice="'+(i+1)+'"><b>'+(i+1)+'</b><span>'+format(o)+'</span></button>').join('')+'</div></section>';
+   +'<h3>Select the matching aircraft (keyboard: 1–4)</h3><div class="orientation-choices">'+q.options.map((o,i)=>'<button type="button" data-orient-choice="'+(i+1)+'"><b>'+(i+1)+'</b><svg width="39" height="39" viewBox="0 0 40 40" aria-hidden="true" style="transform:rotate('+o.heading+'deg);flex-shrink:0"><path d="M20 2L24 17 36 23 36 27 23 25 23 34 28 36 28 38 20 36 12 38 12 36 17 34 17 25 4 27 4 23 16 17Z" fill="currentColor"/></svg><span>'+format(o)+'</span></button>').join('')+'</div></section>';
  }
  function taskView(s){
   return commonHead(s,'Keep the autopilot updated while handling alerts (alert key: '+bindings.alert+').')
@@ -398,12 +398,12 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
  }
  function startAnimation(){
   cancelTimers();const s=session;if(!s)return;
-  lastFrame=0;
+  lastFrame=0;s.animationStarted=performance.now();
   const update=(now)=>{
    if(session!==s||s.phase!=='running')return;
    if(!lastFrame)lastFrame=now;
    const dt=clamp((now-lastFrame)/1000,0,.05);lastFrame=now;
-   s.elapsed+=dt;s.remaining=Math.max(0,s.duration-s.elapsed);
+   s.elapsed=(now-s.animationStarted)/1000;s.remaining=Math.max(0,s.duration-s.elapsed);
    if(s.module==='control'){controlStep(s,dt,s.elapsed);drawControl(s)}
    if(s.module==='slalom'){slalomStep(s,dt);drawSlalom(s)}
    const clock=document.getElementById('assessment-clock');if(clock)clock.textContent=formatClock(s.remaining);
@@ -443,7 +443,7 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
  }
  function startFromPage(module){
   const mode=selectedMode;
-  const chosenDifficulty=document.getElementById('memory-difficulty')?.value||selectedDifficulty;
+  const chosenDifficulty=document.getElementById('memory-difficulty')?.value||document.getElementById('difficulty')?.value||selectedDifficulty;
   begin(module,mode,chosenDifficulty);
  }
  function handleClick(event,page){
@@ -535,5 +535,6 @@ export function createAssessmentRuntime({rerender,navigate,notify,profileChanged
  function candidateName(){return candidate?(candidate.firstName+' '+candidate.lastName):'Candidate'}
  let selectedMode='practice',selectedDifficulty='easy';
  return {view,handleClick,handleChange,handleSubmit,handleKeyDown,handleKeyUp,mount,confirmLeave,dispose,status,
+ setOptions:(mode,difficulty)=>{selectedMode=mode==='assessment'?'assessment':'practice';selectedDifficulty=difficulty||selectedDifficulty;},
   moduleHome,chooseModule,candidateName,registered:()=>Boolean(candidate),saved,overall:()=>overallSummary(saved())};
 }

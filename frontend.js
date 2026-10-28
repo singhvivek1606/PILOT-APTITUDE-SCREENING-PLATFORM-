@@ -129,7 +129,7 @@ function activityPanel(){
 function overview(){
  const data=rows(),avg=average(data),best=data.length?Math.max(...data.map(function(r){return Number(r.score)})):null;
  const first=state.profile.name.split(' ')[0];
- return '<div class="page-intro"><div><span class="eyebrow">ASSESSMENT CENTER / OVERVIEW</span><h1 class="page-title">Welcome to your flight deck'+(first!=='Candidate'?', '+escapeHtml(first):'')+'.</h1><p>Your personal environment for pilot aptitude preparation and performance review.</p></div><span class="panel-tag">PHASE 01 — INTERFACE PREVIEW</span></div>'
+ return '<div class="page-intro"><div><span class="eyebrow">ASSESSMENT CENTER / OVERVIEW</span><h1 class="page-title">Welcome to your flight deck'+(first!=='Candidate'?', '+escapeHtml(first):'')+'.</h1><p>Your personal environment for pilot aptitude preparation and performance review.</p></div><span class="panel-tag">KEYBOARD ASSESSMENT BATTERY</span></div>'
  +'<section class="hero"><div class="hero-text"><div class="hero-kicker">AVIATION APTITUDE TRAINING</div><h1>Prepare with precision.<br><span>Perform with confidence.</span></h1><p>Build familiarity with the cognitive and coordination skills assessed during pilot selection. Explore each module and understand the training environment.</p><div class="actions">'+btn('Explore assessments '+icon('arrow'),'button-primary','data-route="assessments"')+btn('Open practice studio','button-outline','data-route="practice"')+'</div></div><div class="hero-art">'+instrument()+'<span class="instrument-caption">HEADING REFERENCE / VISUAL PREVIEW</span></div></section>'
  +section('Assessment snapshot',state.demo?'DEMONSTRATION DATA':'LOCAL BROWSER DATA')
  +'<div class="quick-grid">'+metric('Completed sessions',String(data.length),state.demo?'Illustrative sessions':'Scored local attempts','check')+metric('Average score',avg===null?'—':avg+'%',avg===null?'No recorded results':'Across completed sessions','chart')+metric('Best performance',best===null?'—':best+'%',best===null?'Awaiting first result':'Highest recorded score','target')+metric('Available modules','02','Memory & Control','layers')+'</div>'
@@ -192,14 +192,14 @@ function memoryCockpitPage(){
  +'<div class="cockpit-foot-stat"><span>SESSION</span><strong>'+escapeHtml(state.mode==='practice'?'Practice':'Assessment')+'</strong></div>'
  +'<div class="cockpit-foot-stat"><span>STUDY WINDOW</span><strong>'+({easy:'08',medium:'06',hard:'05'}[state.difficulty]||'08')+' sec</strong></div>'
  +'<div class="cockpit-foot-stat"><span>ROUND</span><strong>01 / 05</strong></div>'
- +btn('Preview status '+icon('arrow'),'button-primary','data-action="session-status"')+'</div></section>'
+ +btn('Begin practice '+icon('arrow'),'button-primary','data-test-action="start"')+'</div></section>'
  +'<p class="cockpit-caption">Concept visualization only · Static readings · Not a certified aircraft instrument.</p>'
  +'<div class="cockpit-config"><span class="config-label">MODE</span>'
  +'<button type="button" class="mode-panel '+(state.mode==='practice'?'selected':'')+'" data-mode="practice" aria-pressed="'+(state.mode==='practice')+'" style="width:auto;padding:12px"><strong>Practice</strong></button>'
  +'<button type="button" class="mode-panel '+(state.mode==='assessment'?'selected':'')+'" data-mode="assessment" aria-pressed="'+(state.mode==='assessment')+'" style="width:auto;padding:12px"><strong>Assessment</strong></button>'
  +'<label class="config-label" for="difficulty">DIFFICULTY</label><select id="difficulty" class="field"><option value="easy" '+(state.difficulty==='easy'?'selected':'')+'>Easy · 8 seconds</option><option value="medium" '+(state.difficulty==='medium'?'selected':'')+'>Medium · 6 seconds</option><option value="hard" '+(state.difficulty==='hard'?'selected':'')+'>Hard · 5 seconds</option></select>'
  +'<span class="mode-shortcut">'+btn('View module catalog','button-outline','data-route="assessments"')+'</span></div>'
- +'<div class="preview-banner">'+icon('info')+'This is the approved frontend design direction. Theme switching and interface controls work now; memory timers, hidden-value recall, physics and official scoring are not activated in Phase 1.</div></div>';
+ +'<div class="preview-banner">'+icon('info')+'This cockpit is a static introduction. Select Begin practice to launch live memory questions with a timed study window and scoring.</div></div>';
 }
 
 function detail(module){
@@ -221,11 +221,11 @@ function detail(module){
  :'<div><div class="control-display">'+tracker()+'</div><div class="control-side-reading"><div><small>TIME ON TARGET</small><strong>—</strong></div><div><small>DEVIATION</small><strong>—</strong></div><div><small>CORRECTIONS</small><strong>—</strong></div></div></div>';
  return '<button type="button" data-route="assessments" class="section-link" style="margin-bottom:17px">'+icon('back')+' Back to assessments</button>'
  +pageHeader('MODULE '+(memory?'01 / COGNITIVE':'02 / PSYCHOMOTOR'),name,memory?'Short-term recall of flight-related information under controlled time pressure.':'Compensatory tracking and corrective hand-eye coordination.')
- +'<div class="module-detail-grid"><div><div class="panel"><div class="panel-heading"><h3>Assessment interface</h3>'+chip('VISUAL PREVIEW','soft-amber')+'</div><div class="detail-display">'+visual+'</div><div class="preview-banner">'+icon('info')+'The instrument above is a static visual preview. No timer, scoring, tracking physics or memory test is running in Phase 1.</div></div>'
+ +'<div class="module-detail-grid"><div><div class="panel"><div class="panel-heading"><h3>Assessment interface</h3>'+chip('VISUAL PREVIEW','soft-amber')+'</div><div class="detail-display">'+visual+'</div><div class="preview-banner">'+icon('info')+'The instrument above is a static preview. Select a session and start the assessment to activate the live tracking simulation.</div></div>'
  +'<div class="panel" style="margin-top:18px"><div class="panel-heading"><h3>How this assessment works</h3>'+chip('INSTRUCTIONS')+'</div><ol class="rule-list">'+rules.map(function(rule,i){return '<li><span class="rule-number">'+String(i+1).padStart(2,'0')+'</span><span>'+rule+'</span></li>'}).join('')+'</ol></div></div>'
  +'<div><div class="panel"><div class="panel-heading"><h3>Configure session</h3>'+chip('PREVIEW ONLY')+'</div><label class="form-label">Session type</label>'+modes
  +(memory?'<div class="form-group"><label class="form-label" for="difficulty">Practice difficulty</label><select id="difficulty" class="field"><option value="easy" '+(state.difficulty==='easy'?'selected':'')+'>Easy — 8 seconds / 1 missing</option><option value="medium" '+(state.difficulty==='medium'?'selected':'')+'>Medium — 6 seconds / 2 missing</option><option value="hard" '+(state.difficulty==='hard'?'selected':'')+'>Hard — 5 seconds / 4 missing</option></select></div>':'<div class="form-group"><label class="form-label">Assessment duration</label><div class="info-row"><span>Standard test</span><strong>60 seconds</strong></div><div class="info-row"><span>Warm-up</span><strong>12 seconds planned</strong></div></div>')
- +'<div class="detail-cta">'+btn('View session status '+icon('arrow'),'button-primary','data-action="session-status"')+'</div><p class="centered-notice">Session execution will be connected after design approval.</p></div><div class="panel" style="margin-top:18px"><h3>Assessment principles</h3><div class="info-row"><span>Current status</span><strong>Interface design</strong></div><div class="info-row"><span>Training mode</span><strong>Unscored</strong></div><div class="info-row"><span>Official licensing</span><strong>Not applicable</strong></div><div class="info-row"><span>Candidate data</span><strong>Local browser only</strong></div></div></div></div>';
+ +'<div class="detail-cta">'+btn('Start selected session '+icon('arrow'),'button-primary','data-test-action="start"')+'</div><p class="centered-notice">Start the selected session to activate the assessment.</p></div><div class="panel" style="margin-top:18px"><h3>Assessment principles</h3><div class="info-row"><span>Current status</span><strong>Interface design</strong></div><div class="info-row"><span>Training mode</span><strong>Unscored</strong></div><div class="info-row"><span>Official licensing</span><strong>Not applicable</strong></div><div class="info-row"><span>Candidate data</span><strong>Local browser only</strong></div></div></div></div>';
 }
 function chart(data){
  const points=data.slice().reverse().slice(-7);if(!points.length)return '';
@@ -237,13 +237,24 @@ function chart(data){
 function dataNotice(){return state.demo?'<div class="notice"><strong>Demonstration data enabled.</strong> The visible scores and records are fictional examples for exploring the design. They are not candidate results and are not saved to assessment history.</div>':'<div class="preview-banner">'+icon('info')+'This view reads existing browser assessment history, if available. New assessments are not generated by the Phase 1 frontend preview.</div>'}
 function results(){
  const data=rows(),avg=average(data);
- const highest=data.length?Math.max(...data.map(function(r){return Number(r.score)})):null;
- const mem=data.filter(function(r){return r.module==='memory'}),con=data.filter(function(r){return r.module==='control'});const moduleTypes=new Set(data.map(r=>r.module));
- return pageHeader('PERFORMANCE / ANALYTICS','Results & analytics','Review recorded local assessment outcomes, or explore the dashboard with clearly labeled demonstration data.',liveToggle())
- +dataNotice()+'<div class="quick-grid" style="margin-top:18px">'+metric('Assessment sessions',String(data.length),state.demo?'Example records':'Local completed records','check')+metric('Average score',avg===null?'—':avg+'%','Across completed assessments','chart')+metric('Best score',highest===null?'—':highest+'%','Peak performance','target')+metric('Modules attempted',String(moduleTypes.size)+' / 6','Complete module battery','layers')+'</div>'
- +section('Performance over time','MOST RECENT SESSIONS')+'<div class="grid-7-5"><div class="panel">'+(data.length?'<div class="panel-heading"><h3>Assessment score trend</h3>'+chip(state.demo?'SAMPLE':'LOCAL',state.demo?'soft-amber':'')+'</div>'+chart(data):'<div class="empty-state"><div class="empty-graphic">'+icon('chart')+'</div><h3>No recorded sessions</h3><p>Your actual assessment scores will appear here once sessions are completed.</p>'+liveToggle()+'</div>')+'</div>'
- +'<div class="panel"><div class="panel-heading"><h3>Module summary</h3>'+chip('OVERVIEW')+'</div><div class="info-row"><span>Memory sessions</span><strong>'+mem.length+'</strong></div><div class="info-row"><span>Memory average</span><strong>'+(average(mem)===null?'—':average(mem)+'%')+'</strong></div><div class="info-row"><span>Control sessions</span><strong>'+con.length+'</strong></div><div class="info-row"><span>Control average</span><strong>'+(average(con)===null?'—':average(con)+'%')+'</strong></div><div class="info-row"><span>Most recent score</span><strong>'+(data.length?Number(data[0].score)+'%':'—')+'</strong></div></div></div>'
- +section('Result management','BROWSER DATA')+'<div class="panel"><div class="panel-heading"><div><h3>Session records</h3><p class="panel-subtitle">Assessment history is stored locally in this browser.</p></div>'+btn('View history '+icon('arrow'),'button-subtle','data-route="history"')+'</div><p class="stat-placeholder">This frontend does not create new scored sessions. Existing legacy results can still be read and displayed.</p></div>';
+ const highest=data.length?Math.max(...data.map(r=>Number(r.score))):null;
+ const types=new Set(data.map(r=>r.module));
+ const summary=Object.entries(MODULES).map(([key,module])=>{
+   const attempts=data.filter(r=>r.module===key),mean=average(attempts);
+   return '<div class="info-row"><span>'+escapeHtml(module.name)+' ('+attempts.length+')</span><strong>'+(mean===null?'—':mean+'%')+'</strong></div>';
+ }).join('');
+ return pageHeader('PERFORMANCE / ANALYTICS','Results & analytics','View completed local assessments across all six modules. Practice results are not recorded.',liveToggle())
+ +dataNotice()+'<div class="quick-grid" style="margin-top:18px">'
+ +metric('Completed assessments',String(data.length),state.demo?'Fictional samples':'Scored sessions only','check')
+ +metric('Average score',avg===null?'—':avg+'%','Across scored sessions','chart')
+ +metric('Best score',highest===null?'—':highest+'%','Highest saved score','target')
+ +metric('Modules attempted',types.size+' / 6','Full aptitude battery','layers')+'</div>'
+ +section('Performance over time','RECORDED ATTEMPTS')
+ +'<div class="grid-7-5"><div class="panel">'+(data.length?'<div class="panel-heading"><h3>Assessment score trend</h3>'+chip(state.demo?'DEMONSTRATION':'LOCAL HISTORY')+'</div>'+chart(data):
+ '<div class="empty-state"><h3>No scored assessments yet</h3><p>Complete an assessment to populate your performance chart.</p>'+liveToggle()+'</div>')+'</div>'
+ +'<div class="panel"><div class="panel-heading"><h3>Module averages</h3>'+chip('ALL SIX')+'</div>'+summary+'</div></div>'
+ +section('Recorded history','LOCAL DATA')+'<div class="panel"><div class="panel-heading"><div><h3>Assessment records</h3><p class="panel-subtitle">Scores are calculated in JavaScript and stored on this device.</p></div>'+btn('View history '+icon('arrow'),'button-subtle','data-route="history"')+'</div>'
+ +'<p class="stat-placeholder">'+(data.length?data.length+' completed sessions available.':'No assessments recorded. Select an assessment module to begin.')+'</p></div>';
 }
 function historyView(){
  const data=rows();
@@ -259,7 +270,9 @@ function updateProfileBadge(){
 }
 function render(){
  const testPages=['registration','settings','assessments','practice','memory','control','mathematics','slalom','orientation','taskmanager'];
- main.innerHTML=testPages.includes(state.route)?assessmentRuntime.view(state.route==='practice'?'assessments':state.route):({
+ main.innerHTML=state.route==='memory'&&!assessmentRuntime.status()?memoryCockpitPage():
+ state.route==='control'&&!assessmentRuntime.status()?detail('control'):
+ testPages.includes(state.route)?assessmentRuntime.view(state.route==='practice'?'assessments':state.route):({
    overview:overview,results:results,history:historyView
  }[state.route]||overview)();
  document.getElementById('breadcrumb-current').textContent=routeNames[state.route];
@@ -294,7 +307,7 @@ function openModal(title,body,controls){
 }
 function sessionStatus(){
  const mode=state.mode==='practice'?'practice':'scored assessment';
- openModal('Interface preview only','<p>You selected the <strong>'+escapeHtml(state.route==='memory'?'Memory':'Control')+'</strong> module in <strong>'+mode+'</strong> mode.</p><div class="notice blue">The interface and configuration controls are functional. The test engine is intentionally not connected in this design phase. Existing assessment logic remains preserved in the repository.</div>');
+ openModal('Training application only','<p>You selected the <strong>'+escapeHtml(state.route==='memory'?'Memory':'Control')+'</strong> module in <strong>'+mode+'</strong> mode.</p><div class="notice blue">The interface and configuration controls are functional. The test engine is intentionally not connected in this design phase. Existing assessment logic remains preserved in the repository.</div>');
 }
 function profileDialog(){
  openModal('Candidate preferences','<p>Personalize the local dashboard display. This information stays in your browser.</p><label class="form-label" for="candidate-name">Display name</label><input class="field" id="candidate-name" maxlength="48" autocomplete="nickname" value="'+escapeHtml(state.profile.name)+'">',btn('Cancel','button-outline','data-action="close-modal"')+btn('Save preferences','button-primary','data-action="save-profile"'));
@@ -310,7 +323,7 @@ document.addEventListener('click',function(e){
  const routeEl=e.target.closest('[data-route]');if(routeEl){e.preventDefault();navigate(routeEl.dataset.route);return}
  const themeButton=e.target.closest('[data-theme-choice]');
  if(themeButton){setTheme(themeButton.dataset.themeChoice);return}
- const modeEl=e.target.closest('[data-mode]');if(modeEl){state.mode=modeEl.dataset.mode;render();return}
+ const modeEl=e.target.closest('[data-mode]');if(modeEl){state.mode=modeEl.dataset.mode;assessmentRuntime.setOptions(state.mode,state.difficulty);render();return}
  const actionEl=e.target.closest('[data-action]');if(!actionEl)return;
  switch(actionEl.dataset.action){
  case 'toggle-demo':state.demo=!state.demo;render();break;
@@ -332,7 +345,7 @@ modalLayer.addEventListener('click',function(e){if(e.target===modalLayer)closeMo
 document.addEventListener('keydown',function(e){if(assessmentRuntime.handleKeyDown(e,state.route))return;if(e.key==='Escape'){closeModal();closeMenu()}});
 document.addEventListener('keyup',function(e){assessmentRuntime.handleKeyUp(e)});
 document.addEventListener('submit',function(e){assessmentRuntime.handleSubmit(e)});
-document.addEventListener('change',function(e){assessmentRuntime.handleChange(e);if(e.target.id==='difficulty')state.difficulty=e.target.value});
+document.addEventListener('change',function(e){assessmentRuntime.handleChange(e);if(e.target.id==='difficulty'){state.difficulty=e.target.value;assessmentRuntime.setOptions(state.mode,state.difficulty)}});
 window.addEventListener('popstate',function(){const next=location.hash.slice(1);navigate(routes.includes(next)?next:'overview',true)});
 window.addEventListener('hashchange',function(){const next=location.hash.slice(1);if(routes.includes(next)&&next!==state.route){navigate(next,true)}});
 setTheme(state.theme);
