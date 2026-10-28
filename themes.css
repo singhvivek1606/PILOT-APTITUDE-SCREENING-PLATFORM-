@@ -1,0 +1,203 @@
+/* AeroVector Phase 1 themes.
+   Two deliberately restrained aviation palettes. All instrument screens stay dark
+   for consistent readability, like physical flight displays. */
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#cbd5d8;--side:#e4e9eb;--surface:#edf2f3;--surface-2:#e4ebed;
+  --surface-3:#d7e1e4;--line:#a1b4bc;--line-soft:#b9c9cf;
+  --text:#1e3541;--muted:#56707e;--subtle:#6b8590;
+  --accent:#315e70;--accent-strong:#264e60;--amber:#9a7043;
+  --red:#a2514f;--green:#28745b;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1b272d;--side:#202e35;--surface:#263740;--surface-2:#2d4049;
+  --surface-3:#344953;--line:#536c78;--line-soft:#3c5561;
+  --text:#e2e9eb;--muted:#adbdc5;--subtle:#94a9b4;
+  --accent:#a7cdd3;--accent-strong:#c1e3e2;--amber:#dcbb91;
+  --red:#d29a97;--green:#a6d7bb;
+}
+html[data-theme]{background:var(--bg)}
+html[data-theme] body{background:var(--bg);color:var(--text)}
+html[data-theme] .workspace{width:100%;min-width:0}
+html[data-theme] .sidebar{background:var(--side);color:var(--text);border-color:var(--line)}
+html[data-theme] .brand-text strong{color:var(--text)}
+html[data-theme] .brand-text small{color:var(--muted)}
+html[data-theme] .brand-symbol{background:var(--surface-2);border-color:var(--line);color:var(--accent-strong)}
+html[data-theme] .nav-heading{color:var(--muted)}
+html[data-theme] .nav-item{color:var(--muted)}
+html[data-theme] .nav-item:hover{background:var(--surface-3);color:var(--text)}
+html[data-theme] .nav-item.active{background:var(--surface-3);color:var(--text);border-color:var(--line)}
+html[data-theme] .nav-item.active>span:first-child{color:var(--accent)}
+html[data-theme] .module-number{color:var(--text);border-color:var(--line)}
+html[data-theme] .sidebar-divider{background:var(--line-soft)}
+html[data-theme] .operational-panel{background:var(--surface-2);border-color:var(--line)}
+html[data-theme] .operational-label,html[data-theme] .operational-panel strong{color:var(--text)}
+html[data-theme] .operational-panel small,html[data-theme] .side-legal{color:var(--muted)}
+html[data-theme] .topbar{background:var(--side);border-bottom:1px solid var(--line);box-shadow:0 1px 6px #15283212;height:76px;flex-basis:76px;padding:0 clamp(18px,3vw,48px);gap:15px}
+html[data-theme] .breadcrumb{color:var(--muted);font-size:10px}
+html[data-theme] .breadcrumb strong{color:var(--text)}
+html[data-theme] .breadcrumb-divider{color:var(--subtle)}
+html[data-theme] .topbar-separator{background:var(--line)}
+html[data-theme] .environment-pill{border:none;background:transparent;color:var(--muted)}
+html[data-theme] .profile-control{color:var(--text)}
+html[data-theme] .profile-copy small,html[data-theme] .profile-control svg{color:var(--muted)}
+html[data-theme] .avatar{background:var(--surface-3);color:var(--text);border-color:var(--line)}
+html[data-theme] .icon-button{color:var(--text);background:var(--surface-2);border-color:var(--line)}
+html[data-theme] .main-content{max-width:1630px;padding:35px clamp(20px,3vw,49px) 65px}
+html[data-theme] .footer{color:var(--muted);border-color:var(--line-soft)}
+html[data-theme] .eyebrow{color:var(--accent)}
+html[data-theme] .page-title{color:var(--text)}
+html[data-theme] .page-intro p,html[data-theme] .section-bar p,html[data-theme] .panel-subtitle{color:var(--muted)}
+html[data-theme] .section-bar h2,html[data-theme] .section-link{color:var(--text)}
+html[data-theme] .panel-tag{color:var(--muted)}
+html[data-theme] .panel,
+html[data-theme] .metric-card,
+html[data-theme] .module-card,
+html[data-theme] .assessment-row{background:var(--surface);border-color:var(--line-soft);box-shadow:0 1px 2px #112b360e;color:var(--text)}
+html[data-theme] .panel h3,html[data-theme] .module-card h3,html[data-theme] .assessment-row h3{color:var(--text)}
+html[data-theme] .module-card:hover,html[data-theme] .assessment-row:hover{border-color:var(--line)}
+html[data-theme] .module-card p,html[data-theme] .assessment-row p,
+html[data-theme] .module-footer span,html[data-theme] .metric-note{color:var(--muted)}
+html[data-theme] .module-id,html[data-theme] .metric-label{color:var(--muted)}
+html[data-theme] .metric-label svg{color:var(--accent)}
+html[data-theme] .metric-value{color:var(--text)}
+html[data-theme] .metric-value .unit{color:var(--muted)}
+html[data-theme] .chip{color:var(--accent);border-color:var(--line);background:var(--surface-2)}
+html[data-theme] .chip.soft-amber{color:var(--amber)}
+html[data-theme] .button-primary{background:#345f72;border-color:#345f72;color:#fff}
+html[data-theme] .button-primary:hover{background:#244f63}
+html[data-theme] .button-outline,html[data-theme] .button-subtle{background:var(--surface-2);color:var(--text);border-color:var(--line)}
+html[data-theme] .button-outline:hover,html[data-theme] .button-subtle:hover{background:var(--surface-3)}
+html[data-theme] .button-quiet{color:var(--text)}
+html[data-theme] .button-quiet:hover{background:var(--surface-3)}
+html[data-theme] .hero{background:linear-gradient(110deg,var(--surface) 0%,var(--surface-2) 55%,var(--surface-3) 100%);border:1px solid var(--line);min-height:290px}
+html[data-theme] .hero h1,html[data-theme] .hero h1 span{color:var(--text)}
+html[data-theme] .hero-kicker{color:var(--accent)}
+html[data-theme] .hero-kicker:before{background:var(--accent)}
+html[data-theme] .hero p{color:var(--muted)}
+html[data-theme] .hero-art{background:radial-gradient(ellipse at 51% 53%,#3d5863,#293f4c 62%,#203642)}
+html[data-theme] .hero-art:before{background:linear-gradient(90deg,var(--surface-2),transparent 35%)}
+html[data-theme] .hero-art .instrument-caption{color:#bfced4}
+html[data-theme] .module-visual,html[data-theme] .detail-display{background:#101c24;border-color:#344d57}
+html[data-theme] .visual-caption{color:#b0c5ce}
+html[data-theme] .assessment-icon,html[data-theme] .empty-graphic,
+html[data-theme] .step-index{background:var(--surface-2);color:var(--accent);border-color:var(--line)}
+html[data-theme] .step p,html[data-theme] .empty-state p{color:var(--muted)}
+html[data-theme] .step,html[data-theme] .rule-list li{border-color:var(--line-soft)}
+html[data-theme] .rule-list li,html[data-theme] .rule-number{color:var(--text)}
+html[data-theme] .page-header-panel{background:var(--surface-2);border-color:var(--line)}
+html[data-theme] .page-header-panel p{color:var(--muted)}
+html[data-theme] .page-header-mark{color:var(--subtle)}
+html[data-theme] .meta-row .meta{color:var(--muted)}
+html[data-theme] .mode-panel{background:var(--surface-2);border-color:var(--line);color:var(--text)}
+html[data-theme] .mode-panel.selected{background:var(--surface-3);border-color:var(--accent)}
+html[data-theme] .mode-panel small{color:var(--muted)}
+html[data-theme] .mode-panel .radio-dot{border-color:var(--line)}
+html[data-theme] .mode-panel.selected .radio-dot{border-color:var(--accent)}
+html[data-theme] .mode-panel.selected .radio-dot:after{background:var(--accent)}
+html[data-theme] .form-label{color:var(--text)}
+html[data-theme] .field{background:var(--surface);border-color:var(--line);color:var(--text)}
+html[data-theme] .field::placeholder{color:var(--subtle)}
+html[data-theme] .preview-banner,
+html[data-theme] .notice.blue{background:var(--surface-2);border-color:var(--line);color:var(--muted)}
+html[data-theme] .notice{color:var(--text);background:var(--surface-2);border-color:var(--line)}
+html[data-theme] .notice strong{color:var(--text)}
+html[data-theme] .info-row,html[data-theme] .history-table td,html[data-theme] .history-table th{border-color:var(--line-soft)}
+html[data-theme] .info-row span,html[data-theme] .history-table th{color:var(--muted)}
+html[data-theme] .info-row strong,html[data-theme] .history-table td,html[data-theme] .history-table td strong{color:var(--text)}
+html[data-theme] .dialog{background:var(--surface);border-color:var(--line);color:var(--text)}
+html[data-theme] .dialog p,html[data-theme] .stat-placeholder{color:var(--muted)}
+html[data-theme] .dialog h2{color:var(--text)}
+html[data-theme] .toast{background:var(--surface);border-color:var(--line);color:var(--text)}
+html[data-theme] .chart-svg text{fill:var(--muted)}
+html[data-theme] .chart-svg .grid-line{stroke:var(--line-soft)}
+html[data-theme] .chart-svg .plot-line{stroke:var(--accent)}
+html[data-theme] .chart-svg .plot-point{fill:var(--accent);stroke:var(--surface)}
+html[data-theme] .visual-key{color:var(--muted)}
+html[data-theme] .segment,html[data-theme] .segmented{background:var(--surface-2);border-color:var(--line)}
+html[data-theme] .segmented button{color:var(--muted)}
+html[data-theme] .segmented button.active{background:var(--surface-3);color:var(--text)}
+html[data-theme] .side-note{border-color:var(--line)}
+/* Desktop header follows the approved horizontal cockpit-lab navigation direction. */
+@media(min-width:951px){
+ html[data-theme] .app-layout{display:block}
+ html[data-theme] .sidebar{display:none}
+ html[data-theme] .topbar-left{gap:25px}
+ html[data-theme] .topbar{justify-content:space-between}
+ html[data-theme] .desktop-brand{display:flex}
+ html[data-theme] .desktop-navigation{display:flex}
+ html[data-theme] .topbar-actions{gap:14px}
+}
+.desktop-brand{display:flex;align-items:center;gap:10px;white-space:nowrap;min-width:198px}
+.desktop-brand .brand-symbol{width:32px;height:32px;border:0;background:transparent}
+.desktop-brand .brand-symbol svg{width:26px;height:26px}
+.desktop-brand strong{font:800 13px/1 var(--display);letter-spacing:.14em}
+.desktop-brand small{display:block;font-size:8px;margin-top:4px;color:var(--muted);font-weight:800;letter-spacing:.18em}
+.desktop-navigation{display:flex;align-items:center;gap:2px;flex-wrap:nowrap;margin-left:clamp(4px,3vw,42px)}
+.desktop-navigation .nav-item{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent!important;padding:27px 12px 24px;text-align:center;font-size:10px;letter-spacing:.065em;text-transform:uppercase;white-space:nowrap}
+.desktop-navigation .nav-item.active{border-bottom-color:var(--accent);color:var(--text)}
+.theme-switch{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2)}
+.theme-option{border:1px solid transparent;border-radius:5px;background:transparent;color:var(--muted);padding:8px 11px;font-weight:750;font-size:11px;min-width:55px}
+.theme-option[aria-pressed="true"]{background:var(--surface);border-color:var(--line);color:var(--text);box-shadow:0 1px 3px #111a2220}
+.theme-option:hover{color:var(--text)}
+@media(max-width:1360px){
+ .desktop-brand{min-width:auto}
+ .desktop-navigation{margin-left:4px}
+ .desktop-navigation .nav-item{padding-left:8px;padding-right:8px;font-size:9px}
+ .topbar-actions .profile-copy{display:none}
+ .topbar-actions .environment-pill{display:none}
+}
+@media(max-width:950px){
+ html[data-theme] .topbar{padding:0 16px}
+ html[data-theme] .sidebar{display:flex;box-shadow:15px 0 35px #0003}
+ html[data-theme] .desktop-navigation{display:none}
+ html[data-theme] .desktop-brand{display:none}
+ html[data-theme] .mobile-menu{display:grid!important}
+ html[data-theme] .topbar-actions{gap:8px}
+}
+@media(max-width:500px){
+ html[data-theme] .environment-pill,html[data-theme] .topbar-separator,html[data-theme] .profile-copy{display:none}
+ .theme-option{font-size:10px;min-width:49px;padding:8px}
+ html[data-theme] .topbar-actions{gap:6px}
+ html[data-theme] .main-content{padding:23px 13px 36px}
+}
+/* Cockpit preview — static flight data, separate from the later simulation engine. */
+html[data-theme] .cockpit-page .page-intro{margin-bottom:20px}
+.cockpit-shell{border:1px solid #6a8089;border-radius:13px;overflow:hidden;background:#425d6b;box-shadow:0 11px 32px #15272f1c}
+.cockpit-window{height:170px;position:relative;overflow:hidden;background:linear-gradient(180deg,#819ca7 0%,#bbcfcd 61%,#d5c4ad 91%,#7a8d8a 100%)}
+.cockpit-window svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:85%;opacity:.62}
+.cockpit-window:before{content:'';position:absolute;z-index:2;left:26%;top:-32%;width:21px;height:145%;background:linear-gradient(90deg,#3f5964,#839ba3 48%,#405a64);transform:rotate(15deg);box-shadow:680px 10px 0 2px #66808a}
+.cockpit-window:after{content:'';position:absolute;left:0;right:0;bottom:0;height:21px;background:#324c56;border-top:4px solid #718a90;z-index:2}
+.window-label{position:absolute;z-index:3;left:23px;top:20px;background:#dce6e6eb;border:1px solid #aec1c8;border-radius:4px;color:#2b5360;padding:10px 13px}
+.window-label strong{display:block;font-size:10px;letter-spacing:.1em}
+.window-label small{display:block;margin-top:4px;font-size:10px;color:#577780}
+.window-badge{position:absolute;z-index:3;right:22px;top:20px;font-size:10px;letter-spacing:.08em;font-weight:800;color:#315260;background:#dce6e6eb;border-radius:3px;padding:7px 10px}
+.cockpit-deck{display:grid;grid-template-columns:1.03fr 1.03fr .78fr;gap:15px;padding:17px 16px 18px;background:linear-gradient(#405760,#566e76)}
+.flight-screen{background:#0c171d;border:8px solid #5b7178;border-radius:9px;box-shadow:inset 0 0 0 2px #1c2c34,0 0 0 1px #263c45;min-width:0;padding:13px}
+.screen-caption{display:flex;align-items:center;justify-content:space-between;gap:8px;font:800 9px var(--font);letter-spacing:.1em;color:#aec6cb;margin:0 0 10px;white-space:nowrap}
+.screen-caption span:last-child{color:#77929e;font-weight:600}
+.pfd-svg,.nd-svg{display:block;width:100%;height:auto;aspect-ratio:480/302}
+.pfd-svg text,.nd-svg text{font-family:var(--font)}
+.parameter-screen{display:flex;flex-direction:column}
+.flight-readings{display:grid;gap:8px;flex:1}
+.flight-reading{background:#1a2b33;border:1px solid #47616c;border-left:3px solid #8ebeb6;border-radius:3px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.flight-reading span{font-size:10px;letter-spacing:.08em;color:#a7c2cb;font-weight:800}
+.flight-reading strong{font:800 clamp(17px,1.65vw,26px) var(--display);white-space:nowrap;color:#edf5f5}
+.flight-reading small{font-size:10px;color:#a6c4cb}
+.cockpit-footer{background:#dae3e4;color:#24404d;border-top:1px solid #8fa9b2;display:flex;align-items:center;gap:18px;padding:13px 22px}
+.cockpit-instructions{display:flex;align-items:center;gap:13px;flex:1;min-width:190px}
+.cockpit-i{width:30px;height:30px;border-radius:50%;background:#315b6d;color:#fff;display:grid;place-items:center;font-weight:800;flex-shrink:0}
+.cockpit-instructions strong{display:block;font-size:12px}
+.cockpit-instructions small{display:block;color:#5d7783;margin-top:4px;font-size:10px}
+.cockpit-foot-stat{min-width:93px;border-right:1px solid #a5b8be;padding-right:18px}
+.cockpit-foot-stat span{display:block;color:#688492;font-size:9px;font-weight:800;letter-spacing:.09em}
+.cockpit-foot-stat strong{display:block;font-size:14px;margin-top:4px}
+.cockpit-footer .button{margin-left:auto;flex-shrink:0}
+.cockpit-page .cockpit-caption{color:var(--muted);font-size:11px;text-align:right;margin-top:7px}
+.cockpit-config{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+.cockpit-config .config-label{font-size:11px;font-weight:800;color:var(--muted)}
+.cockpit-config .field{width:auto;min-width:155px}
+.cockpit-config .mode-shortcut{margin-left:auto}
+@media(max-width:1080px){.cockpit-deck{grid-template-columns:1fr 1fr}.parameter-screen{grid-column:1/-1}.flight-readings{grid-template-columns:repeat(4,1fr)}.flight-reading{display:block}.flight-reading strong{display:block;margin:8px 0 0}.cockpit-footer{flex-wrap:wrap}.cockpit-instructions{flex-basis:100%}}
+@media(max-width:650px){.cockpit-deck{grid-template-columns:1fr;gap:12px;padding:12px}.parameter-screen{grid-column:auto}.flight-readings{grid-template-columns:repeat(2,1fr)}.cockpit-window{height:120px}.cockpit-window:before{box-shadow:290px 10px 0 2px #66808a}.cockpit-foot-stat{min-width:70px}.cockpit-footer{gap:9px;padding:14px}.cockpit-footer .button{width:100%}.window-label{left:11px;top:10px}.window-badge{right:10px;top:10px}}

@@ -10,6 +10,7 @@ const sidebar = document.getElementById('sidebar');
 const shade = document.getElementById('mobile-shade');
 const toastElement = document.getElementById('toast');
 const PROFILE_KEY = 'aerovector.preview.candidate';
+const THEME_KEY = 'aerovector.v1.theme';
 const HISTORY_KEY = 'aerovector.v1.history';
 const routes = ['overview','assessments','practice','results','history','memory','control'];
 const routeNames = {overview:'Overview',assessments:'Assessments',practice:'Practice studio',results:'Results & analytics',history:'Session history',memory:'Memory recall',control:'Control tracking'};
@@ -42,9 +43,23 @@ const paths = {
   calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/>',
   play:'<path d="m8 5 12 7-12 7z"/>'
 };
-const state = {route:'overview',demo:false,module:'memory',mode:'practice',difficulty:'easy',profile:readProfile()};
+const state = {route:'overview',demo:false,module:'memory',mode:'practice',difficulty:'easy',profile:readProfile(),theme:readTheme()};
 let toastTimer = null;
 function safeRead(key,fallback){try{const value=JSON.parse(localStorage.getItem(key));return value===null?fallback:value}catch{return fallback}}
+function readTheme(){
+  try { return localStorage.getItem(THEME_KEY)==='dark'?'dark':'light'; }
+  catch { return 'light'; }
+}
+function setTheme(requested){
+  const theme=requested==='dark'?'dark':'light';
+  state.theme=theme;
+  document.documentElement.dataset.theme=theme;
+  try { localStorage.setItem(THEME_KEY,theme); }
+  catch { toast('Theme changed for this session; browser storage is unavailable.'); }
+  document.querySelectorAll('[data-theme-choice]').forEach(function(button){
+    button.setAttribute('aria-pressed',String(button.dataset.themeChoice===theme));
+  });
+}
 function readProfile(){const saved=safeRead(PROFILE_KEY,null);return saved&&typeof saved.name==='string'&&saved.name.trim()?{name:saved.name.slice(0,48)}:{name:'Candidate'}}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}
 function icon(name){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[name]||paths.info)+'</svg>'}
@@ -135,7 +150,57 @@ function practice(){
  +'<div class="grid-2">'+moduleCard('memory')+moduleCard('control')+'</div>'
  +section('How practice will work','GUIDED WORKFLOW')+'<div class="grid-2"><div class="panel"><div class="steps"><div class="step"><span class="step-index">01</span><div><strong>Choose a module</strong><p>Select Memory or Control from the available assessments.</p></div></div><div class="step"><span class="step-index">02</span><div><strong>Read the instructions</strong><p>Review the task and the expected user interactions.</p></div></div></div></div><div class="panel"><div class="steps"><div class="step"><span class="step-index">03</span><div><strong>Configure practice</strong><p>Choose the appropriate difficulty or standard tracking trial.</p></div></div><div class="step"><span class="step-index">04</span><div><strong>Review immediate feedback</strong><p>Practice attempts will not count toward official local assessment records.</p></div></div></div></div></div>';
 }
+
+/**
+ * Phase-1 memory cockpit. SVG flight displays and numeric values are explicitly
+ * static design samples. No scoring or time-based behavior is represented here.
+ */
+function memoryCockpitPage(){
+ const flightDisplay = '<svg class="pfd-svg" viewBox="0 0 480 302" role="img" aria-label="Static sample primary flight display, 245 knots, heading 274 degrees, altitude 12500 feet">'
+ +'<defs><clipPath id="pfd-window"><rect x="105" y="15" width="270" height="270" rx="3"/></clipPath></defs>'
+ +'<rect width="480" height="302" fill="#101e27"/>'
+ +'<g clip-path="url(#pfd-window)"><rect x="105" y="15" width="270" height="133" fill="#568cad"/><rect x="105" y="148" width="270" height="140" fill="#8d6850"/><path d="M105 148H375" stroke="#f4ebe0" stroke-width="3"/>'
+ +'<path d="M185 168h110 M200 194h80 M214 217h52" fill="none" stroke="#f5f0ea" stroke-width="2"/>'
+ +'<path d="M178 162h45l17 -7 17 7h45" stroke="#f2d36c" stroke-width="5" fill="none"/>'
+ +'<path d="M240 114v39 M208 145l-7 12 M272 145l7 12" fill="none" stroke="#f9f7f1" stroke-width="3"/></g>'
+ +'<rect x="8" y="15" width="92" height="270" fill="#172c37" stroke="#52737d"/><rect x="380" y="15" width="92" height="270" fill="#172c37" stroke="#52737d"/>'
+ +'<g font-size="17" fill="#c9e1e5" text-anchor="middle"><text x="50" y="52">260</text><text x="50" y="95">250</text><text x="50" y="204">230</text><text x="50" y="251">220</text><text x="426" y="52">13 000</text><text x="426" y="97">12 750</text><text x="426" y="205">12 250</text><text x="426" y="252">12 000</text></g>'
+ +'<rect x="10" y="126" width="86" height="53" fill="#0b2530" stroke="#a2d4cf" stroke-width="2"/><rect x="382" y="126" width="88" height="53" fill="#0b2530" stroke="#a2d4cf" stroke-width="2"/>'
+ +'<g font-size="25" font-weight="800" fill="#d9f5ef" text-anchor="middle"><text x="53" y="159">245</text><text x="426" y="159">12500</text></g>'
+ +'<g fill="#abc9d0" font-size="12" text-anchor="middle"><text x="53" y="27">IAS / KTS</text><text x="425" y="27">ALT / FT</text></g>'
+ +'<rect x="166" y="265" width="148" height="32" rx="3" fill="#102631" stroke="#5c8290"/><text x="240" y="288" fill="#b4e3dd" font-size="24" text-anchor="middle" font-weight="750">274°</text></svg>';
+ const navigationDisplay = '<svg class="nd-svg" viewBox="0 0 480 302" role="img" aria-label="Static sample navigation display, heading 274 degrees">'
+ +'<rect width="480" height="302" fill="#101e27"/>'
+ +'<g stroke="#405f69" fill="none"><circle cx="240" cy="148" r="133" stroke-width="1.8"/><circle cx="240" cy="148" r="92" stroke-dasharray="4 6"/><circle cx="240" cy="148" r="52"/><path d="M240 7v280M98 148h284" stroke-width="1"/></g>'
+ +'<g fill="#d9edef" font-size="17" font-weight="800" text-anchor="middle"><text x="240" y="29">N</text><text x="385" y="154">E</text><text x="240" y="289">S</text><text x="97" y="154">W</text></g>'
+ +'<path d="M240 150v-100l52 -31" fill="none" stroke="#80cdbb" stroke-width="4" stroke-dasharray="9 6"/><circle cx="292" cy="19" r="7" fill="#80cdbb"/>'
+ +'<path d="M240 135l-8 22h16z" fill="#eed6a3"/><path d="M240 148L240 73" stroke="#80cdbb" stroke-width="2" stroke-dasharray="5 5"/>'
+ +'<rect x="17" y="10" width="84" height="33" fill="#1d3943" stroke="#4c7380"/><text x="59" y="34" text-anchor="middle" font-size="20" fill="#dceeee">274°</text>'
+ +'<g fill="#8bb0b8" font-size="12"><text x="16" y="289">HDG SEL</text><text x="365" y="289">MAP 20 NM</text></g></svg>';
+ const value=(name,value,unit)=>'<div class="flight-reading"><span>'+name+'</span><strong>'+value+' <small>'+unit+'</small></strong></div>';
+ const head=pageHeader('PILOT APTITUDE LAB / COCKPIT ENVIRONMENT','Flight data recall','Study the flight indications as you would during cockpit familiarization.',chip('MEMORY / INSTRUMENT PREVIEW'));
+ return '<div class="cockpit-page">'+head+'<section class="cockpit-shell" aria-label="Static cockpit instrument preview">'
+ +'<div class="cockpit-window"><svg viewBox="0 0 1200 190" preserveAspectRatio="none" aria-hidden="true"><path d="M0 160L115 123l100 18 90-39 121 43 105-17 82 14 113-32 84 19 130-38 110 30 70-10v59H0" fill="#617e83"/><path d="M0 177l180-34 140 12 170-20 130 15 170-14 210 8v46H0" fill="#8faaa8"/></svg><div class="window-label"><strong>FLIGHT DECK · VISUALIZATION</strong><small>Aviation-inspired familiarization scene</small></div><span class="window-badge">DAYLIGHT / VFR</span></div>'
+ +'<div class="cockpit-deck"><div class="flight-screen"><div class="screen-caption"><span>PRIMARY FLIGHT DISPLAY</span><span>PFD 01 / SIMULATED</span></div>'+flightDisplay+'</div>'
+ +'<div class="flight-screen"><div class="screen-caption"><span>NAVIGATION DISPLAY</span><span>ND 02 / SIMULATED</span></div>'+navigationDisplay+'</div>'
+ +'<div class="flight-screen parameter-screen"><div class="screen-caption"><span>FLIGHT PARAMETER MEMORY</span><span>DATA 03</span></div><div class="flight-readings">'
+ +value('ALTITUDE','12,500','FT')+value('AIRSPEED','245','KTS')+value('HEADING','274','DEG')+value('COM 1','121.50','MHz')+'</div></div></div>'
+ +'<div class="cockpit-footer"><div class="cockpit-instructions"><span class="cockpit-i">i</span><div><strong>Memorize the four flight indications.</strong><small>Selected readings will be concealed for recall in the future functional module.</small></div></div>'
+ +'<div class="cockpit-foot-stat"><span>SESSION</span><strong>'+escapeHtml(state.mode==='practice'?'Practice':'Assessment')+'</strong></div>'
+ +'<div class="cockpit-foot-stat"><span>STUDY WINDOW</span><strong>'+({easy:'08',medium:'06',hard:'05'}[state.difficulty]||'08')+' sec</strong></div>'
+ +'<div class="cockpit-foot-stat"><span>ROUND</span><strong>01 / 05</strong></div>'
+ +btn('Preview status '+icon('arrow'),'button-primary','data-action="session-status"')+'</div></section>'
+ +'<p class="cockpit-caption">Concept visualization only · Static readings · Not a certified aircraft instrument.</p>'
+ +'<div class="cockpit-config"><span class="config-label">MODE</span>'
+ +'<button type="button" class="mode-panel '+(state.mode==='practice'?'selected':'')+'" data-mode="practice" aria-pressed="'+(state.mode==='practice')+'" style="width:auto;padding:12px"><strong>Practice</strong></button>'
+ +'<button type="button" class="mode-panel '+(state.mode==='assessment'?'selected':'')+'" data-mode="assessment" aria-pressed="'+(state.mode==='assessment')+'" style="width:auto;padding:12px"><strong>Assessment</strong></button>'
+ +'<label class="config-label" for="difficulty">DIFFICULTY</label><select id="difficulty" class="field"><option value="easy" '+(state.difficulty==='easy'?'selected':'')+'>Easy · 8 seconds</option><option value="medium" '+(state.difficulty==='medium'?'selected':'')+'>Medium · 6 seconds</option><option value="hard" '+(state.difficulty==='hard'?'selected':'')+'>Hard · 5 seconds</option></select>'
+ +'<span class="mode-shortcut">'+btn('View module catalog','button-outline','data-route="assessments"')+'</span></div>'
+ +'<div class="preview-banner">'+icon('info')+'This is the approved frontend design direction. Theme switching and interface controls work now; memory timers, hidden-value recall, physics and official scoring are not activated in Phase 1.</div></div>';
+}
+
 function detail(module){
+ if(module==='memory')return memoryCockpitPage();
  const memory=module==='memory',name=memory?'Memory recall':'Control tracking';
  const modes='<div class="mode-options"><button type="button" data-mode="practice" class="mode-panel '+(state.mode==='practice'?'selected':'')+'" aria-pressed="'+(state.mode==='practice')+'"><span><strong>Practice mode</strong><small>Unscored familiarization with repeatable attempts and feedback.</small></span><span class="radio-dot"></span></button><button type="button" data-mode="assessment" class="mode-panel '+(state.mode==='assessment'?'selected':'')+'" aria-pressed="'+(state.mode==='assessment')+'"><span><strong>Assessment mode</strong><small>Timed, scored session with a warm-up trial and recorded results.</small></span><span class="radio-dot"></span></button></div>';
  const rules=memory?[
@@ -195,6 +260,7 @@ function render(){
  document.querySelectorAll('[data-route]').forEach(function(el){const active=el.dataset.route===state.route;el.classList.toggle('active',active&&el.classList.contains('nav-item'));if(el.classList.contains('nav-item')){if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')}});
  document.querySelectorAll('[data-icon]').forEach(function(el){el.innerHTML=icon(el.dataset.icon)});
  updateProfileBadge();
+ document.querySelectorAll('[data-theme-choice]').forEach(function(button){button.setAttribute('aria-pressed',String(button.dataset.themeChoice===state.theme))});
 }
 function closeMenu(){sidebar.classList.remove('open');shade.hidden=true;document.getElementById('menu-button').setAttribute('aria-expanded','false')}
 function toggleMenu(){const visible=!sidebar.classList.contains('open');sidebar.classList.toggle('open',visible);shade.hidden=!visible;document.getElementById('menu-button').setAttribute('aria-expanded',String(visible))}
@@ -225,6 +291,8 @@ function exportReal(){
 }
 document.addEventListener('click',function(e){
  const routeEl=e.target.closest('[data-route]');if(routeEl){e.preventDefault();navigate(routeEl.dataset.route);return}
+ const themeButton=e.target.closest('[data-theme-choice]');
+ if(themeButton){setTheme(themeButton.dataset.themeChoice);return}
  const modeEl=e.target.closest('[data-mode]');if(modeEl){state.mode=modeEl.dataset.mode;render();return}
  const actionEl=e.target.closest('[data-action]');if(!actionEl)return;
  switch(actionEl.dataset.action){
@@ -248,4 +316,5 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal(
 document.addEventListener('change',function(e){if(e.target.id==='difficulty')state.difficulty=e.target.value});
 window.addEventListener('popstate',function(){const next=location.hash.slice(1);state.route=routes.includes(next)?next:'overview';render()});
 window.addEventListener('hashchange',function(){const next=location.hash.slice(1);if(routes.includes(next)&&next!==state.route){state.route=next;render()}});
+setTheme(state.theme);
 const initial=location.hash.slice(1);navigate(routes.includes(initial)?initial:'overview',true);

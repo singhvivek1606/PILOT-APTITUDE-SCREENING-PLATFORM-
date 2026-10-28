@@ -9,6 +9,8 @@ Independent aviation-inspired aptitude screening prototype, built entirely with 
 This branch is a **frontend-first visual redesign**. The interface is intentionally separated from the existing assessment engine so the screens can be reviewed before assessment functionality is integrated.
 
 The frontend includes:
+- **Two distinct visual themes:** Light (balanced gray cockpit workspace, default) and Dark (muted instrument-panel palette). A persistent accessible two-button switch in the header stores the selection in `aerovector.v1.theme`.
+- **Cockpit-inspired Memory preview:** fixed SVG Primary Flight Display and Navigation Display, plus the four required flight readings; values are examples, not an active test.
 - Responsive navigation for Overview, Assessments, Practice studio, Results & analytics, History, Memory recall, and Control tracking.
 - Professional, custom SVG aviation instrument displays (static previews).
 - Interactive module selection, mode selection, Memory difficulty selection, and candidate display-name settings.
@@ -45,7 +47,9 @@ The repository CI validates the previous scoring engine and the new frontend's p
 | File | Purpose |
 | --- | --- |
 | `index.html` | Phase 1 application shell and navigation |
-| `styles.css` | Responsive visual design system |
+| `styles.css` | Base responsive layout and visual components |
+| `themes.css` | Light and dark themes, navigation styling, and cockpit instrument preview |
+
 | `frontend.js` | Phase 1 pages, views and user interface behaviors |
 | `app.js` | Preserved original Memory/Control implementation, not currently loaded |
 | `core.mjs` | Preserved pure assessment logic and scoring |
@@ -60,3 +64,13 @@ The repository CI validates the previous scoring engine and the new frontend's p
 4. Complete usability, accessibility, responsive and end-to-end browser validation.
 
 LocalStorage is not a secure examination or proctoring backend. Any future attempt limits stored only in a browser are not enforceable.
+
+## Precise scope and behavior
+
+- **Theme switch:** Light and Dark buttons change the entire workspace immediately, use `aria-pressed` to communicate selection, and persist via LocalStorage. If storage is disabled, switching still works until reload. The instruments deliberately keep their own dark palette in both modes.
+- **Navigation:** The top navigation and mobile drawer switch views without a page reload; browser Back and Forward are supported using URL fragments.
+- **Memory configuration:** Practice/Assessment and Easy/Medium/Hard controls change visible settings, including the 8/6/5-second *display label*. This is a visual preview: no active timer runs. The preview values 12,500 ft, 245 KTS, 274° and 121.50 MHz are fixed examples.
+- **Control preview:** Displays a static compensatory tracking gauge. It does not drift or score until Phase 3.
+- **Result displays:** Read legacy LocalStorage data under `aerovector.v1.history`; sample records must be explicitly enabled and never replace true records. Export only exports actual saved records.
+- **Candidate preferences:** The displayed candidate name can be changed and is stored under `aerovector.preview.candidate`.
+- **Not yet implemented:** Memory round timers/recall/scoring, Control physics/keyboard handling and scored test recording. The original implementation exists separately in `app.js`, but is not connected to the approved visual shell; integration is a subsequent phase.

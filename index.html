@@ -3,10 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1724">
+  <meta name="theme-color" content="#dce4e6"><script>
+    // Apply the previous choice before CSS paints to avoid a flash of the wrong theme.
+    try {
+      const savedTheme = localStorage.getItem('aerovector.v1.theme');
+      document.documentElement.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light';
+    } catch {
+      document.documentElement.dataset.theme = 'light';
+    }
+  </script>
   <meta name="description" content="AeroVector — an independent aviation aptitude assessment workspace.">
   <title>AeroVector | Assessment Workspace</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./themes.css">
 </head>
 <body>
   <div class="app-layout">
@@ -43,12 +52,28 @@
       <header class="topbar">
         <div class="topbar-left">
           <button type="button" class="icon-button mobile-menu" id="menu-button" aria-label="Toggle navigation" aria-expanded="false"><span data-icon="menu"></span></button>
+          <a href="#overview" class="desktop-brand" data-route="overview" aria-label="AeroVector homepage">
+            <span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 42 42" fill="none"><path d="M21 5L36 35 21 27 6 35 21 5Z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><path d="M21 17V34" stroke="currentColor" stroke-width="1.4" opacity=".55"/></svg></span>
+            <span><strong>AEROVECTOR</strong><small>FLIGHT TRAINING SYSTEMS</small></span>
+          </a>
+          <nav class="desktop-navigation" aria-label="Main sections">
+            <button type="button" class="nav-item" data-route="overview">Overview</button>
+            <button type="button" class="nav-item" data-route="memory">Memory assessment</button>
+            <button type="button" class="nav-item" data-route="control">Control tracking</button>
+            <button type="button" class="nav-item" data-route="assessments">Assessments</button>
+            <button type="button" class="nav-item" data-route="results">Results</button>
+            <button type="button" class="nav-item" data-route="history">History</button>
+          </nav>
           <div class="breadcrumb"><span>TRAINING CENTER</span><span class="breadcrumb-divider">/</span><strong id="breadcrumb-current">Overview</strong></div>
         </div>
         <div class="topbar-actions">
-          <span class="environment-pill"><span class="live-dot"></span> DESIGN PREVIEW</span>
+          <div class="theme-switch" role="group" aria-label="Interface theme">
+            <button type="button" class="theme-option" data-theme-choice="light" aria-pressed="true">Light</button>
+            <button type="button" class="theme-option" data-theme-choice="dark" aria-pressed="false">Dark</button>
+          </div>
+          <span class="environment-pill"><span class="live-dot"></span> TRAINING SYSTEM PREVIEW</span>
           <span class="topbar-separator"></span>
-          <button class="profile-control" type="button" id="profile-button" aria-label="Candidate preferences"><span class="avatar" id="profile-avatar">C</span><span class="profile-copy"><strong id="profile-name">Candidate</strong><small>Local workspace</small></span><span data-icon="chevron-down"></span></button>
+          <button class="profile-control" type="button" id="profile-button" aria-label="Candidate preferences"><span class="avatar" id="profile-avatar">C</span><span class="profile-copy"><strong id="profile-name">Candidate</strong><small>Local session</small></span><span data-icon="chevron-down"></span></button>
         </div>
       </header>
       <main id="app-main" class="main-content" tabindex="-1"></main>

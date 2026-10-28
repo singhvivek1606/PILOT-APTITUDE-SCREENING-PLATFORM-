@@ -21,7 +21,7 @@ function createApp(existingHistory = []) {
     pushState(_a,_b,hash){location.hash = hash},
     replaceState(_a,_b,hash){location.hash = hash}
   };
-  const document = { getElementById:element, querySelectorAll(){return []}, addEventListener(){} };
+  const document = { documentElement:{dataset:{}}, getElementById:element, querySelectorAll(){return []}, addEventListener(){} };
   const storage = new Map([['aerovector.v1.history', JSON.stringify(existingHistory)]]);
   const localStorage = { getItem:key=>storage.get(key)??null, setItem:(k,v)=>storage.set(k,v) };
   const window = { location, history, scrollTo(){}, addEventListener(){} };
@@ -67,7 +67,33 @@ test('real local assessment history can be read without changing scoring data', 
 test('session detail views make the preview-only status explicit', () => {
   const app = createApp();
   app.exec("navigate('memory')");
-  assert.match(app.element('app-main').innerHTML,/NOT A LIVE TEST/);
+  assert.match(app.element('app-main').innerHTML,/Static readings/);
   app.exec("navigate('control')");
   assert.match(app.element('app-main').innerHTML,/No timer, scoring, tracking physics/);
+});
+
+test('theme defaults to light and switches to dark without changing assessment records', () => {
+  const existing = [{id:'a-1',module:'control',mode:'assessment',score:86,date:'2026-10-20T10:00:00Z'}];
+  const app = createApp(existing);
+  assert.equal(app.context.document.documentElement.dataset.theme, 'light');
+  app.exec("setTheme('dark')");
+  assert.equal(app.context.document.documentElement.dataset.theme, 'dark');
+  assert.equal(app.storage.get('aerovector.v1.theme'), 'dark');
+  assert.deepEqual(JSON.parse(app.storage.get('aerovector.v1.history')), existing);
+  app.exec("setTheme('light')");
+  assert.equal(app.storage.get('aerovector.v1.theme'), 'light');
+});
+test('theme accepts only light and dark; invalid input falls back to light', () => {
+  const app = createApp();
+  app.exec("setTheme('unknown')");
+  assert.equal(app.context.document.documentElement.dataset.theme, 'light');
+});
+test('memory cockpit contains four required parameters and marks the display as simulated', () => {
+  const app = createApp();
+  app.exec("navigate('memory')");
+  const html=app.element('app-main').innerHTML;
+  for(const label of ['ALTITUDE','AIRSPEED','HEADING','COM 1','PFD 01 / SIMULATED','ND 02 / SIMULATED']){
+    assert.ok(html.includes(label),label);
+  }
+  assert.match(html,/not activated in Phase 1/);
 });
