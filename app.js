@@ -65,9 +65,9 @@ function navigate(page) {
   state.memory = null;
   state.control = null;
   state.page = page;
-  if (location.hash !== "#" + page) history.replaceState?.(null, "", "#" + page);
+  if (location.hash !== "#" + page) window.history.replaceState(null, "", "#" + page);
   render();
-  window.scrollTo({ top: 0, behavior: "instant" });
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 function render() {
   document.getElementById("page-crumb").textContent = ({
