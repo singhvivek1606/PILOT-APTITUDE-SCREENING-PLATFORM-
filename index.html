@@ -16,6 +16,7 @@
   <title>AeroVector | Assessment Workspace</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./themes.css">
+  <link rel="stylesheet" href="./assessment.css">
 </head>
 <body>
   <div class="app-layout">
@@ -35,12 +36,18 @@
           <div class="nav-heading nav-break">PERFORMANCE</div>
           <button type="button" class="nav-item" data-route="results"><span data-icon="chart"></span>Results & analytics</button>
           <button type="button" class="nav-item" data-route="history"><span data-icon="clock"></span>Session history</button>
+          <button type="button" class="nav-item" data-route="registration"><span data-icon="user"></span>Candidate registration</button>
+          <button type="button" class="nav-item" data-route="settings"><span data-icon="shield"></span>Keyboard settings</button>
         </nav>
         <div class="sidebar-divider"></div>
         <div class="nav-heading">ASSESSMENT MODULES</div>
         <nav class="primary-nav" aria-label="Assessment modules">
           <button type="button" class="nav-item module-nav" data-route="memory"><span class="module-number">01</span>Memory recall</button>
           <button type="button" class="nav-item module-nav" data-route="control"><span class="module-number">02</span>Control tracking</button>
+          <button type="button" class="nav-item module-nav" data-route="mathematics"><span class="module-number">03</span>Mathematics</button>
+          <button type="button" class="nav-item module-nav" data-route="slalom"><span class="module-number">04</span>Slalom</button>
+          <button type="button" class="nav-item module-nav" data-route="orientation"><span class="module-number">05</span>Orientation</button>
+          <button type="button" class="nav-item module-nav" data-route="taskmanager"><span class="module-number">06</span>Task manager</button>
         </nav>
       </div>
       <div class="side-bottom">
@@ -63,6 +70,8 @@
             <button type="button" class="nav-item" data-route="assessments">Assessments</button>
             <button type="button" class="nav-item" data-route="results">Results</button>
             <button type="button" class="nav-item" data-route="history">History</button>
+            <button type="button" class="nav-item" data-route="registration">Candidate</button>
+            <button type="button" class="nav-item" data-route="settings">Settings</button>
           </nav>
           <div class="breadcrumb"><span>TRAINING CENTER</span><span class="breadcrumb-divider">/</span><strong id="breadcrumb-current">Overview</strong></div>
         </div>
@@ -77,7 +86,7 @@
         </div>
       </header>
       <main id="app-main" class="main-content" tabindex="-1"></main>
-      <footer class="footer"><span>© 2026 AeroVector · Pilot Aptitude Lab</span><span>Independent demonstration · No official assessment data</span></footer>
+      <footer class="footer"><span>© 2026 AeroVector · Pilot Aptitude Lab</span><span>Independent educational test battery · Local results only</span></footer>
     </div>
   </div>
   <div class="mobile-shade" id="mobile-shade" hidden></div>

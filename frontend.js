@@ -1,3 +1,5 @@
+import { createAssessmentRuntime } from './assessment-runtime.mjs';
+import { MODULES } from './assessment-core.mjs';
 
 /**
  * AeroVector frontend design preview — Phase 1.
@@ -12,8 +14,8 @@ const toastElement = document.getElementById('toast');
 const PROFILE_KEY = 'aerovector.preview.candidate';
 const THEME_KEY = 'aerovector.v1.theme';
 const HISTORY_KEY = 'aerovector.v1.history';
-const routes = ['overview','assessments','practice','results','history','memory','control'];
-const routeNames = {overview:'Overview',assessments:'Assessments',practice:'Practice studio',results:'Results & analytics',history:'Session history',memory:'Memory recall',control:'Control tracking'};
+const routes = ['overview','assessments','practice','results','history','memory','control','registration','settings','mathematics','slalom','orientation','taskmanager'];
+const routeNames = {overview:'Overview',assessments:'Assessments',practice:'Practice studio',results:'Results & analytics',history:'Session history',memory:'Memory recall',control:'Control tracking',registration:'Candidate registration',settings:'Settings',mathematics:'Mathematics',slalom:'Slalom',orientation:'Orientation',taskmanager:'Task manager'};
 const demoRows = [
   {id:'DEMO-104',module:'memory',mode:'assessment',score:82,date:'2026-10-24T11:20:00Z',difficulty:'Medium'},
   {id:'DEMO-103',module:'control',mode:'assessment',score:76,date:'2026-10-22T09:20:00Z',difficulty:'Standard'},
@@ -45,6 +47,7 @@ const paths = {
 };
 const state = {route:'overview',demo:false,module:'memory',mode:'practice',difficulty:'easy',profile:readProfile(),theme:readTheme()};
 let toastTimer = null;
+const assessmentRuntime=createAssessmentRuntime({rerender:()=>render(),navigate:(page)=>navigate(page),notify:(message)=>toast(message),profileChanged:(name)=>{state.profile={name};safeWrite(PROFILE_KEY,state.profile);}});
 function safeRead(key,fallback){try{const value=JSON.parse(localStorage.getItem(key));return value===null?fallback:value}catch{return fallback}}
 function readTheme(){
   try { return localStorage.getItem(THEME_KEY)==='dark'?'dark':'light'; }
@@ -68,7 +71,7 @@ function section(title,more,action){return '<div class="section-bar"><div><h2>'+
 function pageHeader(kicker,title,description,action){return '<div class="page-intro"><div><span class="eyebrow">'+kicker+'</span><h1 class="page-title">'+title+'</h1><p>'+description+'</p></div>'+(action||'')+'</div>'}
 function chip(text,extra){return '<span class="chip '+(extra||'')+'">'+text+'</span>'}
 function formatDate(date){const d=new Date(date);return Number.isNaN(d.getTime())?'Unknown':d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
-function realRows(){const data=safeRead(HISTORY_KEY,[]);return Array.isArray(data)?data.filter(function(row){return row&&row.mode==='assessment'&&(row.module==='memory'||row.module==='control')&&Number.isFinite(Number(row.score))}).map(function(row,i){return {...row,id:row.id||'LOCAL-'+(i+1),score:Math.max(0,Math.min(100,Number(row.score))),date:row.date||row.completedAt||'',difficulty:row.difficulty||'—'}}):[]}
+function realRows(){const data=safeRead(HISTORY_KEY,[]);return Array.isArray(data)?data.filter(function(row){return row&&row.mode==='assessment'&&Boolean(MODULES[row.module])&&Number.isFinite(Number(row.score))}).map(function(row,i){return {...row,id:row.id||'LOCAL-'+(i+1),score:Math.max(0,Math.min(100,Number(row.score))),date:row.date||row.completedAt||'',difficulty:row.difficulty||'—'}}):[]}
 function rows(){return state.demo?demoRows:realRows()}
 function latestScore(module){const arr=rows().filter(function(x){return x.module===module});return arr.length?Math.round(Number(arr[0].score))+'%':'—'}
 function average(rowsToUse){return rowsToUse.length?Math.round(rowsToUse.reduce(function(a,b){return a+Number(b.score||0)},0)/rowsToUse.length):null}
@@ -235,9 +238,9 @@ function dataNotice(){return state.demo?'<div class="notice"><strong>Demonstrati
 function results(){
  const data=rows(),avg=average(data);
  const highest=data.length?Math.max(...data.map(function(r){return Number(r.score)})):null;
- const mem=data.filter(function(r){return r.module==='memory'}),con=data.filter(function(r){return r.module==='control'});
+ const mem=data.filter(function(r){return r.module==='memory'}),con=data.filter(function(r){return r.module==='control'});const moduleTypes=new Set(data.map(r=>r.module));
  return pageHeader('PERFORMANCE / ANALYTICS','Results & analytics','Review recorded local assessment outcomes, or explore the dashboard with clearly labeled demonstration data.',liveToggle())
- +dataNotice()+'<div class="quick-grid" style="margin-top:18px">'+metric('Assessment sessions',String(data.length),state.demo?'Example records':'Local completed records','check')+metric('Average score',avg===null?'—':avg+'%','Across both modules','chart')+metric('Best score',highest===null?'—':highest+'%','Peak performance','target')+metric('Modules attempted',String([mem.length>0,con.length>0].filter(Boolean).length)+' / 2','Memory and Control','layers')+'</div>'
+ +dataNotice()+'<div class="quick-grid" style="margin-top:18px">'+metric('Assessment sessions',String(data.length),state.demo?'Example records':'Local completed records','check')+metric('Average score',avg===null?'—':avg+'%','Across completed assessments','chart')+metric('Best score',highest===null?'—':highest+'%','Peak performance','target')+metric('Modules attempted',String(moduleTypes.size)+' / 6','Complete module battery','layers')+'</div>'
  +section('Performance over time','MOST RECENT SESSIONS')+'<div class="grid-7-5"><div class="panel">'+(data.length?'<div class="panel-heading"><h3>Assessment score trend</h3>'+chip(state.demo?'SAMPLE':'LOCAL',state.demo?'soft-amber':'')+'</div>'+chart(data):'<div class="empty-state"><div class="empty-graphic">'+icon('chart')+'</div><h3>No recorded sessions</h3><p>Your actual assessment scores will appear here once sessions are completed.</p>'+liveToggle()+'</div>')+'</div>'
  +'<div class="panel"><div class="panel-heading"><h3>Module summary</h3>'+chip('OVERVIEW')+'</div><div class="info-row"><span>Memory sessions</span><strong>'+mem.length+'</strong></div><div class="info-row"><span>Memory average</span><strong>'+(average(mem)===null?'—':average(mem)+'%')+'</strong></div><div class="info-row"><span>Control sessions</span><strong>'+con.length+'</strong></div><div class="info-row"><span>Control average</span><strong>'+(average(con)===null?'—':average(con)+'%')+'</strong></div><div class="info-row"><span>Most recent score</span><strong>'+(data.length?Number(data[0].score)+'%':'—')+'</strong></div></div></div>'
  +section('Result management','BROWSER DATA')+'<div class="panel"><div class="panel-heading"><div><h3>Session records</h3><p class="panel-subtitle">Assessment history is stored locally in this browser.</p></div>'+btn('View history '+icon('arrow'),'button-subtle','data-route="history"')+'</div><p class="stat-placeholder">This frontend does not create new scored sessions. Existing legacy results can still be read and displayed.</p></div>';
@@ -246,7 +249,7 @@ function historyView(){
  const data=rows();
  return pageHeader('PERFORMANCE / HISTORY','Session history','Browse prior local attempts and distinguish actual recorded scores from preview-only demonstration records.',liveToggle())
  +dataNotice()+'<div class="panel" style="margin-top:20px"><div class="panel-heading"><h3>Assessment records</h3>'+btn('Export actual results '+icon('export'),'button-subtle','data-action="export-real"')+'</div>'
- +(data.length?'<div class="history-table-wrap"><table class="history-table"><thead><tr><th>SESSION ID</th><th>MODULE</th><th>DATE</th><th>DIFFICULTY</th><th>SCORE</th><th>STATUS</th></tr></thead><tbody>'+data.map(function(r){return '<tr><td><strong>'+escapeHtml(r.id)+'</strong></td><td>'+escapeHtml(r.module==='memory'?'Memory recall':'Control tracking')+'</td><td>'+escapeHtml(formatDate(r.date))+'</td><td>'+escapeHtml(r.difficulty)+'</td><td><strong>'+Math.round(Number(r.score))+'%</strong></td><td>'+(state.demo?'<span class="demo-pill">SAMPLE ONLY</span>':chip('RECORDED'))+'</td></tr>'}).join('')+'</tbody></table></div>'
+ +(data.length?'<div class="history-table-wrap"><table class="history-table"><thead><tr><th>SESSION ID</th><th>MODULE</th><th>DATE</th><th>DIFFICULTY</th><th>SCORE</th><th>STATUS</th></tr></thead><tbody>'+data.map(function(r){return '<tr><td><strong>'+escapeHtml(r.id)+'</strong></td><td>'+escapeHtml(MODULES[r.module]?.name||r.module)+'</td><td>'+escapeHtml(formatDate(r.date))+'</td><td>'+escapeHtml(r.difficulty)+'</td><td><strong>'+Math.round(Number(r.score))+'%</strong></td><td>'+(state.demo?'<span class="demo-pill">SAMPLE ONLY</span>':chip('RECORDED'))+'</td></tr>'}).join('')+'</tbody></table></div>'
  :'<div class="empty-state"><div class="empty-graphic">'+icon('clock')+'</div><h3>Your history is empty</h3><p>Completed assessment sessions from the existing app will appear here. Use sample data to explore the table design.</p>'+liveToggle()+'</div>')
  +'</div>';
 }
@@ -255,17 +258,30 @@ function updateProfileBadge(){
  document.getElementById('profile-avatar').textContent=name.trim().charAt(0).toUpperCase()||'C';
 }
 function render(){
- main.innerHTML=({overview:overview,assessments:assessments,practice:practice,results:results,history:historyView,memory:function(){return detail('memory')},control:function(){return detail('control')}}[state.route]||overview)();
+ const testPages=['registration','settings','assessments','practice','memory','control','mathematics','slalom','orientation','taskmanager'];
+ main.innerHTML=testPages.includes(state.route)?assessmentRuntime.view(state.route==='practice'?'assessments':state.route):({
+   overview:overview,results:results,history:historyView
+ }[state.route]||overview)();
  document.getElementById('breadcrumb-current').textContent=routeNames[state.route];
- document.querySelectorAll('[data-route]').forEach(function(el){const active=el.dataset.route===state.route;el.classList.toggle('active',active&&el.classList.contains('nav-item'));if(el.classList.contains('nav-item')){if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')}});
+ document.querySelectorAll('[data-route]').forEach(function(el){
+   const active=el.dataset.route===state.route;
+   el.classList.toggle('active',active&&el.classList.contains('nav-item'));
+   if(el.classList.contains('nav-item')){
+     if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');
+   }
+ });
  document.querySelectorAll('[data-icon]').forEach(function(el){el.innerHTML=icon(el.dataset.icon)});
  updateProfileBadge();
- document.querySelectorAll('[data-theme-choice]').forEach(function(button){button.setAttribute('aria-pressed',String(button.dataset.themeChoice===state.theme))});
+ document.querySelectorAll('[data-theme-choice]').forEach(function(button){
+   button.setAttribute('aria-pressed',String(button.dataset.themeChoice===state.theme));
+ });
+ assessmentRuntime.mount(state.route);
 }
 function closeMenu(){sidebar.classList.remove('open');shade.hidden=true;document.getElementById('menu-button').setAttribute('aria-expanded','false')}
 function toggleMenu(){const visible=!sidebar.classList.contains('open');sidebar.classList.toggle('open',visible);shade.hidden=!visible;document.getElementById('menu-button').setAttribute('aria-expanded',String(visible))}
 function navigate(route,replace){
  if(!routes.includes(route))route='overview';
+ if(state.route!==route&&!assessmentRuntime.confirmLeave(route))return;
  state.route=route;
  if(window.location.hash!=='#'+route){if(replace)history.replaceState(null,'','#'+route);else history.pushState(null,'','#'+route)}
  closeMenu();render();window.scrollTo({top:0,behavior:'auto'});
@@ -290,6 +306,7 @@ function exportReal(){
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='aerovector-results.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);
 }
 document.addEventListener('click',function(e){
+ if(assessmentRuntime.handleClick(e,state.route))return;
  const routeEl=e.target.closest('[data-route]');if(routeEl){e.preventDefault();navigate(routeEl.dataset.route);return}
  const themeButton=e.target.closest('[data-theme-choice]');
  if(themeButton){setTheme(themeButton.dataset.themeChoice);return}
@@ -312,9 +329,11 @@ document.getElementById('profile-button').addEventListener('click',profileDialog
 document.getElementById('menu-button').addEventListener('click',toggleMenu);
 shade.addEventListener('click',closeMenu);
 modalLayer.addEventListener('click',function(e){if(e.target===modalLayer)closeModal()});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeMenu()}});
-document.addEventListener('change',function(e){if(e.target.id==='difficulty')state.difficulty=e.target.value});
-window.addEventListener('popstate',function(){const next=location.hash.slice(1);state.route=routes.includes(next)?next:'overview';render()});
-window.addEventListener('hashchange',function(){const next=location.hash.slice(1);if(routes.includes(next)&&next!==state.route){state.route=next;render()}});
+document.addEventListener('keydown',function(e){if(assessmentRuntime.handleKeyDown(e,state.route))return;if(e.key==='Escape'){closeModal();closeMenu()}});
+document.addEventListener('keyup',function(e){assessmentRuntime.handleKeyUp(e)});
+document.addEventListener('submit',function(e){assessmentRuntime.handleSubmit(e)});
+document.addEventListener('change',function(e){assessmentRuntime.handleChange(e);if(e.target.id==='difficulty')state.difficulty=e.target.value});
+window.addEventListener('popstate',function(){const next=location.hash.slice(1);navigate(routes.includes(next)?next:'overview',true)});
+window.addEventListener('hashchange',function(){const next=location.hash.slice(1);if(routes.includes(next)&&next!==state.route){navigate(next,true)}});
 setTheme(state.theme);
 const initial=location.hash.slice(1);navigate(routes.includes(initial)?initial:'overview',true);
