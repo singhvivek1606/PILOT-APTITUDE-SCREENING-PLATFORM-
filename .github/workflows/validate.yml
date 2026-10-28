@@ -1,0 +1,23 @@
+name: Validate web app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check browser script syntax
+        run: |
+          node --check app.js
+          node --check core.mjs
+      - name: Test scoring and question generation
+        run: node --test tests/core.test.mjs
