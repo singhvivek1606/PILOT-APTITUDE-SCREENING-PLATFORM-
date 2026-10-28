@@ -190,7 +190,7 @@ function updateProfileBadge(){
  document.getElementById('profile-avatar').textContent=name.trim().charAt(0).toUpperCase()||'C';
 }
 function render(){
- main.innerHTML=({overview:overview,assessments:assessments,practice:practice,results:results,history:history,memory:function(){return detail('memory')},control:function(){return detail('control')}}[state.route]||overview)();
+ main.innerHTML=({overview:overview,assessments:assessments,practice:practice,results:results,history:historyView,memory:function(){return detail('memory')},control:function(){return detail('control')}}[state.route]||overview)();
  document.getElementById('breadcrumb-current').textContent=routeNames[state.route];
  document.querySelectorAll('[data-route]').forEach(function(el){const active=el.dataset.route===state.route;el.classList.toggle('active',active&&el.classList.contains('nav-item'));if(el.classList.contains('nav-item')){if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')}});
  document.querySelectorAll('[data-icon]').forEach(function(el){el.innerHTML=icon(el.dataset.icon)});

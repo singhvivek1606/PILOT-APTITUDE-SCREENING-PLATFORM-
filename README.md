@@ -17,7 +17,7 @@ The frontend includes:
 - JSON export for *real* saved local results only, never for demonstration records.
 - Keyboard-accessible dialog controls and mobile navigation.
 
-**Important:** This phase does not run the Memory/Control exams or generate scores. The **View session status** action explains that live test execution is not yet connected. The original `app.js`, `core.mjs`, and original scoring tests are preserved in the repository for integration after design approval.
+**Important:** This phase does not run the Memory/Control exams or generate scores. The **View session status** action explains that live test execution is not yet connected. The original `app.js` and original scoring tests are preserved. `core.mjs` receives only two zero-duration/empty-trial scoring guards to fix pre-existing test failures; normal scoring remains unchanged.
 
 ## Run locally
 
