@@ -95,18 +95,15 @@ function instrument(){
  +'</svg>';
 }
 function tracker(){
- let grid='';
- for(let p=-2;p<=2;p++){const v=110+p*31;grid+='<path d="M39 '+v+'H181M'+v+' 39V181" stroke="#385665" stroke-width=".8" opacity=".58"/>'}
- return '<svg viewBox="0 0 220 220" class="tracker-visual" aria-label="Static compensatory tracking instrument preview" role="img">'
- +'<circle cx="110" cy="110" r="104" fill="#0d2230" stroke="#6d8d9a" stroke-width="1.4"/>'
- +'<circle cx="110" cy="110" r="88" fill="#132c39" stroke="#466b77"/>'
- +'<clipPath id="tracker-clip"><circle cx="110" cy="110" r="76"/></clipPath><g clip-path="url(#tracker-clip)">'+grid+'</g>'
- +'<circle cx="110" cy="110" r="57" fill="none" stroke="#446773" stroke-dasharray="3 4"/>'
- +'<circle cx="110" cy="110" r="25" fill="#183e43" stroke="#9dcfca" stroke-width="1.6"/>'
- +'<path d="M110 33v51M110 136v51M33 110h51M136 110h51" stroke="#6a929d" stroke-width="1.4"/>'
- +'<path d="M102 110h16M110 102v16" stroke="#b7e4db" stroke-width="2.6"/>'
- +'<circle cx="139" cy="85" r="8" fill="#ebc487" stroke="#f9deb1" stroke-width="1.5"/>'
- +'<circle cx="110" cy="110" r="102" fill="none" stroke="#384f5d" stroke-dasharray="2 9" stroke-width="4"/>'
+ return '<svg viewBox="0 0 220 220" class="tracker-visual" role="img" aria-label="Blue ball moving toward a red center circle">'
+ +'<circle cx="110" cy="110" r="104" fill="#122734" stroke="#698c9e" stroke-width="1.3"/>'
+ +'<circle cx="110" cy="110" r="83" fill="none" stroke="#456a7b" stroke-width="1"/>'
+ +'<circle cx="110" cy="110" r="60" fill="none" stroke="#456a7b" stroke-width="1"/>'
+ +'<path d="M110 10v200M10 110h200" stroke="#527b90" stroke-width="1"/>'
+ +'<circle cx="110" cy="110" r="20" fill="#ed76761b" stroke="#f08082" stroke-width="2.5"/>'
+ +'<path d="M98 110h24M110 98v24" stroke="#ee9397" stroke-width="2"/>'
+ +'<path d="M110 110L146 83" stroke="#80c9f076" stroke-width="1.4"/>'
+ +'<circle cx="146" cy="83" r="10" fill="#69b8f0" stroke="#e0f4ff" stroke-width="2"/>'
  +'</svg>';
 }
 function memoryConsole(detail){
