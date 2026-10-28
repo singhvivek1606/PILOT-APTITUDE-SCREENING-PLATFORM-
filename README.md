@@ -1,93 +1,76 @@
 # AeroVector — Pilot Aptitude Screening Platform
 
-An independent aviation-inspired aptitude training web app built with **HTML, CSS, and JavaScript only**. It includes two working tests: short-term **Memory Recall** and **Compensatory Control Tracking**, plus local assessment history and performance charts.
+Independent aviation-inspired aptitude screening prototype, built entirely with **HTML, CSS, vanilla JavaScript, and SVG**.
 
-> **Disclaimer:** This is a hackathon prototype inspired by general aptitude screening exercises. It is not COMPASS™ software, is not affiliated with EPST, and must not be used to make real pilot selection or licensing decisions without appropriate validation.
+> **Independent educational prototype.** AeroVector is not COMPASS™ software, is not affiliated with EPST, and is not a scientifically validated or certified tool for real-world pilot selection.
+
+## Phase 1: Frontend design review
+
+This branch is a **frontend-first visual redesign**. The interface is intentionally separated from the existing assessment engine so the screens can be reviewed before assessment functionality is integrated.
+
+The frontend includes:
+- **Two distinct visual themes:** Light (balanced gray cockpit workspace, default) and Dark (muted instrument-panel palette). A persistent accessible two-button switch in the header stores the selection in `aerovector.v1.theme`.
+- **Cockpit-inspired Memory preview:** fixed SVG Primary Flight Display and Navigation Display, plus the four required flight readings; values are examples, not an active test.
+- Responsive navigation for Overview, Assessments, Practice studio, Results & analytics, History, Memory recall, and Control tracking.
+- Professional, custom SVG aviation instrument displays (static previews).
+- Interactive module selection, mode selection, Memory difficulty selection, and candidate display-name settings.
+- Empty states for users without results, plus a **manually enabled and clearly labeled demonstration-data mode**.
+- Read-only compatibility with existing local browser results stored under `aerovector.v1.history`.
+- JSON export for *real* saved local results only, never for demonstration records.
+- Keyboard-accessible dialog controls and mobile navigation.
+
+**Important:** This phase does not run the Memory/Control exams or generate scores. The **View session status** action explains that live test execution is not yet connected. The original `app.js` and original scoring tests are preserved. `core.mjs` receives only two zero-duration/empty-trial scoring guards to fix pre-existing test failures; normal scoring remains unchanged.
 
 ## Run locally
 
-No Node packages, frontend framework, build step, API key, database, or login is required.
+No packages, build tools, database, API keys or external services are required.
 
-1. Download or clone this repository.
-2. Open a terminal inside the project folder.
-3. Start any simple HTTP server. If Python is installed:
+```bash
+python -m http.server 8000
+```
 
-   ~~~bash
-   python -m http.server 8000
-   ~~~
-
-4. Visit **http://localhost:8000**.
-
-ES modules require an HTTP server in many browsers, so opening index.html directly with file:// is not recommended.
-
-## Features
-
-### Memory Recall (Module 01)
-- Four randomized flight parameters: altitude (FT), speed (KTS), heading (DEG), and radio (MHz).
-- Easy (8s, 1 blank), Medium (6s, 2 blanks), Hard (5s, 4 blanks).
-- Practice mode offers unlimited rounds with immediate feedback.
-- Assessment mode includes an **unscored warm-up** followed by **5 scored rounds**, with difficulty progression.
-- Accepts plain values (e.g. 240) or letter suffixes (e.g. 240s).
-- Measures accuracy, average response time, and weighted score.
-
-**Memory score:** 85% × accuracy (%) + 15% × speed score (%), rounded to the nearest whole number. Speed score = max(0, 100 − 4 × average recall time in seconds).
-
-### Control Tracking (Module 02)
-- Moving ball on a custom Canvas flight instrument with smooth simulated turbulence.
-- Arrow keys or WASD; on-screen directional pad for tablet input.
-- Practice: 25 seconds. Assessment: an **unscored 12-second warm-up**, followed by a **60-second scored run**.
-- Measures time on target (distance within 19% of gauge radius), mean deviation, and direction corrections.
-- Pauses in background tabs are counted as off-target time, to discourage exploiting inactive tabs.
-
-**Control score:** 60% × time-on-target (%) + 30% × proximity score (%) + 10% × smoothness score (%), rounded to the nearest whole number.
-
-- Proximity score = clamp(100 − mean deviation as a percentage of gauge radius, 0, 100).
-- Smoothness score = clamp(100 − 35 × direction changes ÷ duration in seconds, 0, 100).
-
-These scoring formulas are hackathon choices, not scientifically validated pilot aptitude norms.
-
-### Dashboard
-- Recent results and average/best scores.
-- Progress charts for up to 6 recent scored attempts per module.
-- Detailed attempt table and JSON export.
-- LocalStorage persistence (browser-only). Practice results are never saved as scored attempts.
-- Two assessment starts per module per browser; clearing browser data resets limits. This is a UX limit, not secure server-enforced proctoring.
+Then open **http://localhost:8000** in a browser. Alternatively, use any static HTTP server.
 
 ## Tests
 
-Unit tests use the built-in Node test runner (Node 20+ recommended):
+With Node.js installed:
 
-~~~bash
-node --test tests/core.test.mjs
-~~~
+```bash
+node --check frontend.js
+node --test tests/*.test.mjs
+```
 
-Tests cover difficulty progression, memory question generation, answer normalization, scoring, control calculations, and timer formatting.
+The repository CI validates the previous scoring engine and the new frontend's page-rendering behavior.
 
-## Project files
+## File map
 
-| File | Responsibility |
+| File | Purpose |
 | --- | --- |
-| index.html | App shell, navigation, and accessible main content |
-| styles.css | Responsive aviation-inspired UI |
-| core.mjs | Pure randomized data generation and transparent scoring |
-| app.js | Page rendering, gameplay, Canvas tracking, timers, local history |
-| tests/core.test.mjs | Dependency-free unit tests |
+| `index.html` | Phase 1 application shell and navigation |
+| `styles.css` | Base responsive layout and visual components |
+| `themes.css` | Light and dark themes, navigation styling, and cockpit instrument preview |
 
-## Suggested live demo (3–5 minutes)
+| `frontend.js` | Phase 1 pages, views and user interface behaviors |
+| `app.js` | Preserved original Memory/Control implementation, not currently loaded |
+| `core.mjs` | Preserved pure assessment logic and scoring |
+| `tests/frontend.test.mjs` | Frontend rendering and demonstration-data validation |
+| `tests/core.test.mjs` | Original scoring tests |
 
-1. Show the overview page and both modules.
-2. Run an Easy Memory practice round, then show the 5-round assessment flow.
-3. Run Control practice and steer with WASD/arrow keys to stabilize the ball.
-4. Show the results dashboard and JSON export.
-5. Explain the scoring formulas and that results stay on the device.
+## Next stages (after visual approval)
 
-## Future enhancements
+1. Integrate real Memory practice and assessment sessions.
+2. Integrate real Control practice, animation physics and scoring.
+3. Connect the verified scored results to the redesigned dashboard and history.
+4. Complete usability, accessibility, responsive and end-to-end browser validation.
 
-- Candidate accounts, secure server-side attempt tracking, verified assessments.
-- Gamepad/joystick support and adaptive difficulty.
-- Additional Orientation, Slalom, and divided-attention tasks.
-- PDF report export and validated percentile benchmarks.
+LocalStorage is not a secure examination or proctoring backend. Any future attempt limits stored only in a browser are not enforceable.
 
-## Privacy
+## Precise scope and behavior
 
-The app does not send test results to a server. Data stays in the browser's local storage unless the user exports it.
+- **Theme switch:** Light and Dark buttons change the entire workspace immediately, use `aria-pressed` to communicate selection, and persist via LocalStorage. If storage is disabled, switching still works until reload. The instruments deliberately keep their own dark palette in both modes.
+- **Navigation:** The top navigation and mobile drawer switch views without a page reload; browser Back and Forward are supported using URL fragments.
+- **Memory configuration:** Practice/Assessment and Easy/Medium/Hard controls change visible settings, including the 8/6/5-second *display label*. This is a visual preview: no active timer runs. The preview values 12,500 ft, 245 KTS, 274° and 121.50 MHz are fixed examples.
+- **Control preview:** Displays a static compensatory tracking gauge. It does not drift or score until Phase 3.
+- **Result displays:** Read legacy LocalStorage data under `aerovector.v1.history`; sample records must be explicitly enabled and never replace true records. Export only exports actual saved records.
+- **Candidate preferences:** The displayed candidate name can be changed and is stored under `aerovector.preview.candidate`.
+- **Not yet implemented:** Memory round timers/recall/scoring, Control physics/keyboard handling and scored test recording. The original implementation exists separately in `app.js`, but is not connected to the approved visual shell; integration is a subsequent phase.

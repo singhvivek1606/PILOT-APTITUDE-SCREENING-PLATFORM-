@@ -69,7 +69,7 @@ export function summarizeMemoryRounds(rounds) {
   const total = rounds.reduce((sum, r) => sum + r.total, 0);
   const avgRecallSec = rounds.length ? rounds.reduce((sum, r) => sum + r.recallSeconds, 0) / rounds.length : 0;
   const accuracy = total ? Math.round(100 * correct / total) : 0;
-  const speedScore = Math.round(clamp(100 - 4 * avgRecallSec, 0, 100));
+  const speedScore = rounds.length ? Math.round(clamp(100 - 4 * avgRecallSec, 0, 100)) : 0;
   const score = Math.round(0.85 * accuracy + 0.15 * speedScore);
   return { score, accuracy, speedScore, avgRecallSec: Number(avgRecallSec.toFixed(1)), correct, total, rounds: rounds.length };
 }
@@ -80,7 +80,7 @@ export function summarizeControl({ totalMs = 0, onTargetMs = 0, deviationIntegra
   const onTarget = safeTotal ? Math.round(100 * safeHits / safeTotal) : 0;
   // Deviation is normalized: 0 means dead center; 100 means one gauge-radius away.
   const avgDeviation = safeTotal ? Number((100 * Math.max(0, deviationIntegral) / safeTotal).toFixed(1)) : 0;
-  const proximityScore = Math.round(clamp(100 - avgDeviation, 0, 100));
+  const proximityScore = safeTotal ? Math.round(clamp(100 - avgDeviation, 0, 100)) : 0;
   const durationSeconds = safeTotal / 1000;
   const smoothnessScore = durationSeconds ? Math.round(clamp(100 - safeCorrections * 35 / durationSeconds, 0, 100)) : 0;
   const score = Math.round(0.60 * onTarget + 0.30 * proximityScore + 0.10 * smoothnessScore);
