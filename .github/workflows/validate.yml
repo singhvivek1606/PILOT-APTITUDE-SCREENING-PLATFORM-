@@ -15,9 +15,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check browser script syntax
+      - name: Check JavaScript syntax
         run: |
           node --check app.js
+          node --check frontend.js
           node --check core.mjs
-      - name: Test scoring and question generation
-        run: node --test tests/core.test.mjs
+      - name: Test scoring and frontend rendering
+        run: node --test tests/*.test.mjs
