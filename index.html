@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#081321">
+  <meta name="description" content="AeroVector Pilot Aptitude Lab: practice memory recall and compensatory control with transparent scoring.">
+  <title>AeroVector — Pilot Aptitude Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#home" data-page="home" aria-label="AeroVector home">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <span class="brand-copy"><strong>AEROVECTOR</strong><small>PILOT APTITUDE LAB</small></span>
+      </a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="nav-list" aria-label="Modules">
+        <button class="nav-link active" type="button" data-page="home"><span class="nav-icon">▦</span><span>Overview</span></button>
+        <button class="nav-link" type="button" data-page="memory"><span class="nav-icon">◈</span><span>Memory test</span><span class="nav-index">01</span></button>
+        <button class="nav-link" type="button" data-page="control"><span class="nav-icon">◎</span><span>Control test</span><span class="nav-index">02</span></button>
+        <button class="nav-link" type="button" data-page="results"><span class="nav-icon">▥</span><span>Results</span></button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="side-note">
+        <span class="status-dot"></span><span>TRAINING SYSTEM ONLINE</span>
+        <p>Built for aspiring aviators. Practice regularly, track your progress, and fly sharper.</p>
+      </div>
+      <div class="sidebar-footer">INDEPENDENT TRAINING TOOL<br><span>Not affiliated with COMPASS™ / EPST</span></div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="breadcrumbs"><span class="breadcrumb-root">APTITUDE LAB</span><span class="breadcrumb-separator">/</span><strong id="page-crumb">Overview</strong></div>
+        <div class="topbar-right"><span class="topbar-indicator"><span class="status-dot"></span> SYSTEM READY</span><span class="local-label">● LOCAL SESSION</span></div>
+      </header>
+      <main id="page-content" class="page-content" tabindex="-1" aria-live="polite"></main>
+      <footer class="site-footer"><span>© AeroVector • Training prototype</span><span>Results saved in this browser only</span></footer>
+    </div>
+  </div>
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
