@@ -1,93 +1,136 @@
-# AeroVector — Pilot Aptitude Screening Platform
+# AeroVector — Windows and macOS Electron Desktop Project
 
-An independent aviation-inspired aptitude training web app built with **HTML, CSS, and JavaScript only**. It includes two working tests: short-term **Memory Recall** and **Compensatory Control Tracking**, plus local assessment history and performance charts.
+**Version 2.3 · Source project for Aviation Pilot Aptitude Hackathon Brief v2.0**
 
-> **Disclaimer:** This is a hackathon prototype inspired by general aptitude screening exercises. It is not COMPASS™ software, is not affiliated with EPST, and must not be used to make real pilot selection or licensing decisions without appropriate validation.
+AeroVector is a **desktop application** made with Electron, HTML, CSS, and JavaScript. The **same source code** runs on Windows and on Apple **Mac** computers. This download contains the source code, not an already compiled Windows `.exe` or macOS `.dmg`.
 
-## Run locally
+> **Hackathon requirement:** The supplied assignment specifically requires a **working Windows native executable/installer**. macOS support is an additional convenience for teammates; it does **not** replace submitting or demonstrating the Windows build.
 
-No Node packages, frontend framework, build step, API key, database, or login is required.
+## 1. Requirements
 
-1. Download or clone this repository.
-2. Open a terminal inside the project folder.
-3. Start any simple HTTP server. If Python is installed:
+- A Windows PC (Windows 10/11) **or an Apple Mac** (macOS, Intel x64 or Apple Silicon M-series arm64).
+- Node.js LTS and npm (`node -v`, `npm -v` in Terminal).
+- Internet connection only for the first dependency installation, and to download build dependencies.
+- VS Code is optional. Any terminal works.
 
-   ~~~bash
-   python -m http.server 8000
-   ~~~
+## 2. Running on a Mac (Apple laptop/desktop)
 
-4. Visit **http://localhost:8000**.
+1. Download and **extract** the project ZIP fully.
+2. Open **Terminal** and move into the extracted project folder containing `package.json`. Example: `cd ~/Downloads/AeroVector_Electron_Windows_Mac_Ready` (adjust if the extracted folder is elsewhere).
+3. Run the following commands:
 
-ES modules require an HTTP server in many browsers, so opening index.html directly with file:// is not recommended.
+   ```bash
+   npm install
+   npm start
+   ```
 
-## Features
+AeroVector opens as a desktop window; it is **not** a Safari/Chrome browser tab. `npm start` runs a development build; it does **not** require an Apple Developer account or a compiled installer.
 
-### Memory Recall (Module 01)
-- Four randomized flight parameters: altitude (FT), speed (KTS), heading (DEG), and radio (MHz).
-- Easy (8s, 1 blank), Medium (6s, 2 blanks), Hard (5s, 4 blanks).
-- Practice mode offers unlimited rounds with immediate feedback.
-- Assessment mode includes an **unscored warm-up** followed by **5 scored rounds**, with difficulty progression.
-- Accepts plain values (e.g. 240) or letter suffixes (e.g. 240s).
-- Measures accuracy, average response time, and weighted score.
+**Alternative:** On macOS, double-click `RUN_ELECTRON_MAC.command` to install dependencies (if needed) and start the app. If the downloaded file isn't executable, open Terminal in the project folder and run `chmod +x RUN_ELECTRON_MAC.command BUILD_MAC_APP.command`, or simply use `npm install` / `npm start` above.
 
-**Memory score:** 85% × accuracy (%) + 15% × speed score (%), rounded to the nearest whole number. Speed score = max(0, 100 − 4 × average recall time in seconds).
+### Creating a Mac application installer (`.dmg`)
 
-### Control Tracking (Module 02)
-- Moving ball on a custom Canvas flight instrument with smooth simulated turbulence.
-- Arrow keys or WASD; on-screen directional pad for tablet input.
-- Practice: 25 seconds. Assessment: an **unscored 12-second warm-up**, followed by a **60-second scored run**.
-- Measures time on target (distance within 19% of gauge radius), mean deviation, and direction corrections.
-- Pauses in background tabs are counted as off-target time, to discourage exploiting inactive tabs.
+On the **Mac** itself, run:
 
-**Control score:** 60% × time-on-target (%) + 30% × proximity score (%) + 10% × smoothness score (%), rounded to the nearest whole number.
+```bash
+npm run dist:mac
+```
 
-- Proximity score = clamp(100 − mean deviation as a percentage of gauge radius, 0, 100).
-- Smoothness score = clamp(100 − 35 × direction changes ÷ duration in seconds, 0, 100).
+This builds `.dmg` and `.zip` outputs for the current Mac CPU architecture in `dist/`. Or run `BUILD_MAC_APP.command`.
 
-These scoring formulas are hackathon choices, not scientifically validated pilot aptitude norms.
+**Other build options (run on a Mac):**
 
-### Dashboard
-- Recent results and average/best scores.
-- Progress charts for up to 6 recent scored attempts per module.
-- Detailed attempt table and JSON export.
-- LocalStorage persistence (browser-only). Practice results are never saved as scored attempts.
-- Two assessment starts per module per browser; clearing browser data resets limits. This is a UX limit, not secure server-enforced proctoring.
+```bash
+npm run dist:mac:arm64      # M1 / M2 / M3 / M4 / later Apple Silicon (arm64)
+npm run dist:mac:x64        # Intel Mac
+npm run dist:mac:universal  # Both architectures in one Mac binary (larger)
+```
 
-## Tests
+A `.dmg` is a macOS installer disk image (not a Windows `.exe`). **The ZIP does not include a prebuilt `.dmg`.** The project includes a macOS `.icns` app icon and app menu/Dock support.
 
-Unit tests use the built-in Node test runner (Node 20+ recommended):
+**Signing note:** The Mac build configuration is **unsigned and unnotarized** for local hackathon testing. macOS Gatekeeper may warn or block an app distributed to a different Mac. For sharing more widely, sign and notarize the Mac build with an Apple Developer ID; do not assume unsigned builds will open with no warnings. No signing is needed to run with `npm start` during development.
 
-~~~bash
-node --test tests/core.test.mjs
-~~~
+## 3. Running on Windows (unchanged)
 
-Tests cover difficulty progression, memory question generation, answer normalization, scoring, control calculations, and timer formatting.
+Extract the project. Open VS Code in the extracted folder, open Terminal, then:
 
-## Project files
+```powershell
+npm install
+npm start
+```
 
-| File | Responsibility |
-| --- | --- |
-| index.html | App shell, navigation, and accessible main content |
-| styles.css | Responsive aviation-inspired UI |
-| core.mjs | Pure randomized data generation and transparent scoring |
-| app.js | Page rendering, gameplay, Canvas tracking, timers, local history |
-| tests/core.test.mjs | Dependency-free unit tests |
+Or double-click `RUN_ELECTRON.cmd`.
 
-## Suggested live demo (3–5 minutes)
+Build the **required Windows installer** on a Windows computer:
 
-1. Show the overview page and both modules.
-2. Run an Easy Memory practice round, then show the 5-round assessment flow.
-3. Run Control practice and steer with WASD/arrow keys to stabilize the ball.
-4. Show the results dashboard and JSON export.
-5. Explain the scoring formulas and that results stay on the device.
+```powershell
+npm run dist:win
+```
 
-## Future enhancements
+For a portable `.exe` rather than an installer:
 
-- Candidate accounts, secure server-side attempt tracking, verified assessments.
-- Gamepad/joystick support and adaptive difficulty.
-- Additional Orientation, Slalom, and divided-attention tasks.
-- PDF report export and validated percentile benchmarks.
+```powershell
+npm run dist:win:portable
+```
 
-## Privacy
+The files appear under `dist/` after a successful build. `BUILD_WINDOWS_INSTALLER.cmd` provides a Windows double-click helper. Windows output is unsigned and may show SmartScreen warnings until appropriately signed.
 
-The app does not send test results to a server. Data stays in the browser's local storage unless the user exports it.
+## 4. Core features
+
+- Welcome screen and candidate registration before starting assessments.
+- Six modules: Memory, Control, Mathematics, Slalom, Orientation, Task Manager.
+- In-module Practice or Scored Assessment choices; only scored results save to History.
+- Control instrument needle and ball run in **separate stages** (customized design).
+- Slalom accelerates and adds hazards during the run.
+- Results: score, demo PASS/NEEDS PRACTICE, trends, module averages.
+- History: saved completed scored attempts and JSON export.
+- Customizable keyboard bindings under Controls.
+
+**Scoring note:** The 60% demo PASS rule is not an official pilot selection standard. The project is a hackathon prototype and not an official COMPASS™ system.
+
+**Local data:** Candidate and scored result records use Electron's local application profile (`localStorage`). Each Windows/Mac user, browser, and Electron installation keeps its **own** data. Records are not synchronized across devices; export JSON from History if needed. A new install/app profile begins with an empty History.
+
+## 5. Folder structure
+
+```text
+AeroVector_Electron_Windows_Mac_Ready/
+├── index.html
+├── css/main.css
+├── js/
+│   ├── core.js
+│   ├── ui.js
+│   ├── screens.js
+│   ├── assessment.js
+│   └── app.js
+├── electron/main.cjs
+├── assets/
+│   ├── aerovector.ico        Windows icon
+│   ├── aerovector.icns       macOS icon
+│   └── aerovector.png        Dock and UI icon
+├── package.json
+├── RUN_ELECTRON.cmd
+├── BUILD_WINDOWS_INSTALLER.cmd
+├── RUN_ELECTRON_MAC.command
+├── BUILD_MAC_APP.command
+└── README.md
+```
+
+## 6. Troubleshooting
+
+- **`npm: command not found`** on Mac: install Node.js LTS; restart Terminal; verify `node -v` and `npm -v`.
+- **`electron: command not found`**: run `npm install` in the exact folder containing `package.json`.
+- **Mac says it cannot run `.cmd`**: `.cmd` files are Windows-only; use the `.command` files or `npm` commands instead.
+- **Mac downloaded file won't open**: extract the ZIP first, then run `npm start` via Terminal rather than trying to open source files as an app.
+- **No results or blank history**: complete a **Scored Assessment**, not Practice; results are stored locally per user and device.
+- **Electron on one OS doesn't show results from another device**: local storage is not shared automatically.
+- **Missing dependency after copy**: do not copy `node_modules` from Windows to Mac; run `npm install` on each computer to get the correct Electron binary.
+- **A distributed Mac `.dmg` triggers macOS warnings**: this unsigned sample build is for local testing only. Production distribution requires Apple signing/notarization.
+
+## 7. Hackathon deliverables from the brief
+
+1. Working **Windows executable/installer** (`npm run dist:win` on Windows).
+2. Source code repository (this ZIP can be committed to GitHub).
+3. README with build instructions and feature list (this document).
+4. A 3–5-minute demo video **or** live presentation.
+
+The assignment's original Control reference shows simultaneous tracking, but this implementation intentionally uses sequential needle/ball stages as requested by the project owner. Mention that design change during the demo.

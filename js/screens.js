@@ -1,0 +1,363 @@
+// Browser-ready: works even when index.html is opened directly (file://).
+window.AVScreens = (() => {
+  'use strict';
+// ============================================================
+// screens.js — non-test page renderers (pure HTML strings)
+// ============================================================
+
+const { MODULES, state, STORAGE_KEYS, write } = window.AVCore;
+const {
+  escapeHtml, heroGauge, memoryPreview, controlPreview, slalomPreview,
+  orientationPreview, mathsPreview, taskPreview, scoreChart, toast,
+} = window.AVUI;
+function renderHome() {
+  if (!state.candidate) return `<section class="welcome-screen">
+    <div class="welcome-main">
+      <div class="eyebrow">AVIATION APTITUDE · CANDIDATE INTRODUCTION</div>
+      <h1>Welcome to <span>AeroVector</span></h1>
+      <p>Test the skills used in pilot training: memory, control, maths and more. Start by entering your name, then complete your candidate details.</p>
+      <form id="welcome-form" class="welcome-form">
+        <label class="field-label" for="welcome-name">Your first name</label>
+        <div class="welcome-field"><input id="welcome-name" class="field" name="first" required maxlength="60" autocomplete="given-name" placeholder="Enter your first name" autofocus>
+        <button type="submit" class="btn primary lg">Continue →</button></div>
+      </form>
+      <div class="welcome-foot"><span>01 · Introduce yourself</span><span>02 · Register</span><span>03 · Take assessments</span></div>
+    </div>
+    <div class="welcome-visual"><div class="welcome-instrument">${heroGauge()}</div>
+      <strong>6 aviation aptitude modules</strong><small>Keyboard operated · Local results</small></div>
+  </section>`;
+  const records = scored();
+  const avg = mean(records);
+  const best = records.length ? Math.max(...records.map(r => +r.score)) : null;
+
+  return pageHead(
+    'Pilot aptitude / Overview',
+    `Welcome${state.candidate?.first ? ', ' + escapeHtml(state.candidate.first) : ''}`,
+    'A professional-grade screening battery modelled on the COMPASS™ assessment format.'
+  ) + `
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Assessment Platform</div>
+        <h2>Build confidence.<br><span>Measure your aviation skills.</span></h2>
+        <p>Complete six interactive aviation tests. Take a short practice trial, then choose a scored assessment. Your results remain on this device.</p>
+        <div class="hero-cta">
+          <button class="btn primary lg" data-page="tests">Choose an assessment</button>
+          <button class="btn secondary lg" data-page="register">Edit candidate profile</button>
+        </div>
+      </div>
+      <div class="hero-instrument">
+        ${heroGauge()}
+        <span class="hero-label">PRIMARY FLIGHT DISPLAY · SAMPLE</span>
+      </div>
+    </section>
+
+    ${sectionHead('Session summary', 'Local device only')}
+    <div class="metrics">
+      ${metric('Scored assessments', records.length, 'Completed')}
+      ${metric('Average score', avg === null ? '—' : avg + '%', 'Across attempts')}
+      ${metric('Best score', best === null ? '—' : best + '%', 'Highest recorded')}
+      ${metric('Modules available', '6', 'Full suite')}
+    </div>
+
+    ${sectionHead('Assessment modules', 'Select a module')}
+    <div class="module-grid">${Object.keys(MODULES).map(moduleCard).join('')}</div>
+
+    ${sectionHead('Getting started', 'Three steps')}
+    <div class="panel">
+      <ol class="briefing-steps">
+        <li>Your candidate details are saved on this device. Use <strong>Edit candidate profile</strong> if needed.</li>
+        <li>Review the module briefing and complete the <strong>practice trial</strong>.</li>
+        <li>When ready, run the <strong>scored assessment</strong> — results save automatically.</li>
+      </ol>
+    </div>`;
+}
+
+function renderTests() {
+  return pageHead('Training / Assessments', 'Choose your assessment',
+    'Select a module, read the instructions and choose Practice or Scored Assessment. Scored results appear in Results and History.'
+  ) + `<div class="module-grid">${Object.keys(MODULES).map(moduleCard).join('')}</div>`;
+}
+
+function renderResults() {
+  const records = scored();
+  const avg = mean(records);
+  const best = records.length ? Math.max(...records.map(r => +r.score)) : null;
+
+  return pageHead('Results / Analytics', 'Results & analytics', 'Performance is derived only from scored attempts.') + `
+    <div class="metrics">
+      ${metric('Scored assessments', records.length, 'Completed')}
+      ${metric('Average score', avg === null ? '—' : avg + '%', 'All attempts')}
+      ${metric('Best score', best === null ? '—' : best + '%', 'Highest')}
+      ${metric('Modules tried', new Set(records.map(r => r.module)).size + ' / 6', 'Distinct modules')}
+    </div>
+
+    <div class="panel" style="margin-top:16px"><div class="info-row"><span><strong>Result guide</strong></span><strong>PASS: 60–100% · NEEDS PRACTICE: 0–59%</strong></div>
+    <p class="small muted" style="margin:8px 0 0">The 60% threshold is a training-demo rule, not an official aviation qualification standard. Practice trials do not count toward results.</p></div>
+    ${sectionHead('Latest scored attempts', 'Saved in this browser')}
+    <div class="panel">${records.length ? `<table class="data-table"><thead><tr><th>Module</th><th>Candidate</th><th>Date</th><th>Score</th><th>Result</th></tr></thead><tbody>${records.slice(0,6).map(r => `<tr><td>${escapeHtml(MODULES[r.module].name)}</td><td>${escapeHtml(r.candidate || '—')}</td><td>${new Date(r.date).toLocaleString()}</td><td><strong>${Math.round(r.score)}%</strong></td><td>${statusChip(r.score)}</td></tr>`).join('')}</tbody></table>` : `<div class="empty"><h3>No scored results yet</h3><p>Choose a module, select Scored Assessment and complete it. Practice attempts are not stored.</p><button class="btn primary" data-page="tests">Choose an assessment</button></div>`}</div>
+    ${sectionHead('Score trend', 'Last eight attempts')}
+    <div class="panel">
+      ${records.length
+        ? scoreChart(records)
+        : `<div class="empty"><h3>No scored results yet</h3><p>Complete a scored assessment to populate analytics.</p><button class="btn primary" data-page="tests">Begin assessment</button></div>`}
+    </div>
+
+    ${sectionHead('Per-module averages', 'Best and average')}
+    <div class="panel">
+      ${Object.entries(MODULES).map(([id, m]) => {
+        const rows = records.filter(r => r.module === id);
+        const a = mean(rows);
+        return `<div class="info-row"><span>${escapeHtml(m.name)}</span><strong>${a === null ? '—' : a + '%'}${rows.length ? ` <span class="small muted">· best ${Math.max(...rows.map(r => r.score))}%</span>` : ''}</strong></div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderHistory() {
+  const records = scored();
+  return pageHead(
+    'Results / History',
+    'Assessment history',
+    'Scored attempts only. Practice sessions are not stored.',
+    `<div class="page-actions"><button class="btn secondary" data-action="export">Export JSON</button></div>`
+  ) + `<section class="panel">${records.length
+    ? `<table class="data-table">
+        <thead><tr><th>Date</th><th>Candidate</th><th>Module</th><th>Score</th><th>Result</th><th>Details</th></tr></thead>
+        <tbody>${records.map(r => `
+          <tr>
+            <td>${new Date(r.date).toLocaleString()}</td>
+            <td>${escapeHtml(r.candidate || '—')}</td>
+            <td>${escapeHtml(MODULES[r.module].name)}</td>
+            <td><strong>${Math.round(r.score)} / 100</strong></td>
+            <td>${statusChip(r.score)}</td>
+            <td>${escapeHtml(r.details || 'Completed')}</td>
+          </tr>`).join('')}</tbody>
+      </table>`
+    : `<div class="empty"><h3>No history yet</h3><p>Complete a scored assessment to record it here.</p><button class="btn primary" data-page="tests">Begin assessment</button></div>`}
+  </section>`;
+}
+
+function renderRegister() {
+  const c = state.candidate || (state.welcomeName ? { first: state.welcomeName } : {});
+  const field = (id, label, type = 'text', options = []) => {
+    const input = options.length
+      ? `<select name="${id}" class="field" required>
+           <option value="">Select</option>
+           ${options.map(o => `<option ${c[id] === o ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('')}
+         </select>`
+      : `<input class="field" type="${type}" name="${id}" value="${escapeHtml(c[id] || '')}"
+                ${type === 'email' ? 'autocomplete="email"' : ''}
+                ${type === 'date' ? 'max="' + new Date().toISOString().slice(0, 10) + '"' : ''}
+                required maxlength="160">`;
+    return `<label class="field-group"><span class="field-label">${escapeHtml(label)} *</span>${input}</label>`;
+  };
+
+  return pageHead('Introduction / Candidate', `Candidate registration${c.first ? ' — ' + c.first : ''}`, 'Complete your candidate details, then continue to the assessments. Data stays on this device.') + `
+    <form class="panel" id="candidate-form">
+      <div class="field-grid">
+        ${field('company', 'Company / Institute')}
+        ${field('first', 'First name')}
+        ${field('last', 'Last name')}
+        ${field('address', 'Address')}
+        ${field('zip', 'Zip code')}
+        ${field('city', 'City / Place')}
+        ${field('country', 'Country', 'text', ['India', 'Australia', 'Canada', 'United Kingdom', 'United States', 'Other'])}
+        ${field('dob', 'Date of birth', 'date')}
+        ${field('gender', 'Gender', 'text', ['Female', 'Male', 'Non-binary', 'Prefer not to say'])}
+        ${field('phone', 'Telephone', 'tel')}
+        ${field('email', 'Email address', 'email')}
+      </div>
+      <p class="small muted" style="margin-top:14px">Press Enter to advance to the next field. All fields marked * are required.</p>
+      <div class="form-actions">
+        <button class="btn primary" type="submit">Save and continue →</button>
+      </div>
+    </form>`;
+}
+
+function renderSettings() {
+  const rows = ['left', 'right', 'up', 'down', 'alert'].map(k => {
+    const label = { left: 'Move left', right: 'Move right', up: 'Move up', down: 'Move down', alert: 'Acknowledge alert' }[k];
+    return `<div class="info-row">
+      <span>${label}</span>
+      <button class="btn secondary" data-bind="${k}">${escapeHtml(visibleKey(state.keys[k]))}</button>
+    </div>`;
+  }).join('');
+
+  return pageHead('Controls / Keyboard', 'Keyboard bindings', 'All assessments are operable entirely from the keyboard.') + `
+    <div class="panel">
+      <h3 class="panel-title">Active bindings</h3>
+      ${rows}
+      <p class="small muted" style="margin-top:12px">${state.capture ? `Press a new key for <strong>${escapeHtml(state.capture)}</strong>…` : 'Click a binding to reassign it.'}</p>
+      <div class="form-actions">
+        <button class="btn secondary" data-action="reset-keys">Restore defaults</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h3 class="panel-title">Default layout</h3>
+      <p class="muted">Control and Slalom can be operated with the Arrow keys or with the WASD cluster. Space acknowledges alerts in Task Manager.</p>
+      <div class="keycaps">
+        <span>←</span><span>↑</span><span>↓</span><span>→</span>
+        <span>W</span><span>A</span><span>S</span><span>D</span><span>Space</span>
+      </div>
+    </div>`;
+}
+
+function renderModuleIntro(id) {
+  const m = MODULES[id];
+  const sel = state.selection[id];
+
+  const guides = {
+    memory: [
+      'Four flight parameters are displayed for a fixed memorisation period.',
+      'One or more values are then concealed — recall and enter the missing readings.',
+      'Suffixes such as <code>240s</code> or plain numbers are both accepted.',
+    ],
+    control: [
+      'The test has two stages: first the round needle, then the horizontal ball.',
+      'Use Up/Down during the needle stage; Left/Right during the ball stage.',
+      'Only one instrument is active at a time. Centre it on its red mark.',
+    ],
+    maths: [
+      'Read each question and type only the numeric answer — no units.',
+      'Answers are validated against the expected value.',
+      'Both accuracy and response time contribute to your score.',
+    ],
+    slalom: [
+      'Steer the aircraft left and right through the red and green gates.',
+      'The gates become faster and more frequent as the run progresses. Avoid yellow obstacles.',
+      'Three scored runs of 90 seconds each; use Practice first if needed.',
+    ],
+    orientation: [
+      'Three flight instruments are displayed: RBI, artificial horizon, compass.',
+      'Choose which of four aircraft symbols matches all three readings.',
+      'Wrong answers are not penalised — answer as many as possible.',
+    ],
+    task: [
+      'Copy new altitude, heading and speed values into the autopilot settings.',
+      'When a warning alert appears, acknowledge it with the Space key.',
+      'Both tasks contribute to the composite score.',
+    ],
+  };
+
+  const preview = {
+    memory: memoryPreview(),
+    control: controlPreview(),
+    slalom: slalomPreview(),
+    orientation: orientationPreview(),
+    maths: mathsPreview(),
+    task: taskPreview(),
+  }[id];
+
+  const difficultySelector = id === 'memory' ? `
+    <label class="field-label" for="difficulty">Memorisation level</label>
+    <select class="field" id="difficulty">
+      <option value="easy"   ${sel.difficulty === 'easy' ? 'selected' : ''}>Easy — 8 s · 1 missing</option>
+      <option value="medium" ${sel.difficulty === 'medium' ? 'selected' : ''}>Medium — 6 s · 2 missing</option>
+      <option value="hard"   ${sel.difficulty === 'hard' ? 'selected' : ''}>Hard — 5 s · 4 missing</option>
+    </select>` : '';
+
+  return pageHead(`Assessment ${m.marker}`, m.name, m.desc) + `
+    <div class="briefing">
+      <div class="briefing-visual">${preview}<div class="eyebrow">Sample display</div></div>
+      <div class="briefing-instructions">
+        <h1>${escapeHtml(m.name)}</h1>
+        <p class="muted">${escapeHtml(m.desc)}</p>
+        <div>
+          <div class="field-label" style="margin-bottom:8px">Procedure</div>
+          <ol class="briefing-steps">${guides[id].map(s => `<li>${s}</li>`).join('')}</ol>
+        </div>
+        <div class="mode-picker">
+          <button class="mode-option ${sel.mode === 'practice' ? 'selected' : ''}" data-mode="practice" data-for="${id}">
+            <b>Practice</b><small>Unscored — repeat as needed</small>
+          </button>
+          <button class="mode-option ${sel.mode === 'assessment' ? 'selected' : ''}" data-mode="assessment" data-for="${id}">
+            <b>Scored assessment</b><small>Result saved to history</small>
+          </button>
+        </div>
+        ${difficultySelector}
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <span class="bottom-bar-text">${sel.mode === 'assessment' ? 'Scored result will be saved in Results and History' : 'Practice only · results are not stored'}</span>
+      <button class="btn" data-action="start" data-module="${id}">Start ${sel.mode === 'assessment' ? 'scored assessment' : 'practice'} →</button>
+    </div>`;
+}
+
+function renderComplete(s) {
+  return pageHead('Assessment / Complete', 'Assessment complete',
+    s.mode === 'practice' ? 'Practice — result not saved.' : 'Scored assessment — result saved to local history.') + `
+    <div class="complete-card">
+      <div class="eyebrow">${s.mode === 'practice' ? 'PRACTICE RESULT · NOT SAVED' : 'SCORED RESULT · SAVED TO THIS DEVICE'}</div>
+      ${s.mode === 'assessment' ? statusChip(s.score) : '<span class="result-status practice">PRACTICE</span>'}
+      <div class="complete-score">${s.score}<small> / 100</small></div>
+      <h2>${escapeHtml(MODULES[s.module].name)}</h2>
+      <p>${escapeHtml(s.details)}</p>
+      <div class="form-actions" style="justify-content:center">
+        <button class="btn secondary" data-go="${s.module}">Run again</button>
+        <button class="btn primary" data-page="${s.mode === 'assessment' ? 'results' : 'tests'}">${s.mode === 'assessment' ? 'View saved results' : 'Choose a scored assessment'} →</button>
+      </div>
+    </div>`;
+}
+
+// --- helpers ---
+
+function pageHead(crumb, title, desc, actions = '') {
+  return `<div class="page-head">
+    <div>
+      <div class="crumb">${escapeHtml(crumb)}</div>
+      <h1>${escapeHtml(title)}</h1>
+      <p>${escapeHtml(desc)}</p>
+    </div>
+    ${actions}
+  </div>`;
+}
+
+function sectionHead(title, note = '') {
+  return `<div class="section-head"><h2>${escapeHtml(title)}</h2><span>${escapeHtml(note)}</span></div>`;
+}
+
+function metric(title, value, note) {
+  return `<div class="metric"><span>${escapeHtml(title)}</span><strong>${escapeHtml(String(value))}</strong><small>${escapeHtml(note)}</small></div>`;
+}
+
+function moduleCard(id) {
+  const m = MODULES[id];
+  const previews = {
+    memory: memoryPreview, control: controlPreview, slalom: slalomPreview,
+    orientation: orientationPreview, maths: mathsPreview, task: taskPreview,
+  };
+  return `<article class="module-card">
+    <div class="module-card-head">
+      <span class="eyebrow">Module ${m.marker}</span>
+      <span class="module-tag">${escapeHtml(m.kind)}</span>
+    </div>
+    <h3>${escapeHtml(m.name)}</h3>
+    <p>${escapeHtml(m.desc)}</p>
+    <div class="module-preview">${previews[id]()}</div>
+    <div class="module-actions">
+      <button class="btn primary" data-go="${id}">Open assessment →</button>
+    </div>
+  </article>`;
+}
+
+function statusChip(score) {
+  const pass = Number(score) >= 60;
+  return `<span class="result-status ${pass ? 'pass' : 'fail'}">${pass ? 'PASS' : 'NEEDS PRACTICE'}</span>`;
+}
+
+function scored() {
+  return state.history.filter(r => r && MODULES[r.module] && r.mode === 'assessment' && Number.isFinite(Number(r.score)));
+}
+
+function mean(rows) {
+  return rows.length ? Math.round(rows.reduce((n, r) => n + Number(r.score), 0) / rows.length) : null;
+}
+
+function visibleKey(k) {
+  if (k.startsWith('Arrow')) return k.replace('Arrow', '');
+  if (k === 'Space') return 'Space';
+  if (k.startsWith('Key')) return k.slice(3);
+  return k;
+}
+
+return { renderHome, renderTests, renderResults, renderHistory, renderRegister, renderSettings, renderModuleIntro, renderComplete, scored };
+})();

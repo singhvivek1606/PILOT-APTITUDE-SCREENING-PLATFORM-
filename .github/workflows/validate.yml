@@ -1,4 +1,4 @@
-name: Validate web app
+name: Validate AeroVector desktop app
 
 on:
   push:
@@ -6,18 +6,16 @@ on:
   pull_request:
 
 jobs:
-  tests:
+  source-checks:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check browser script syntax
+      - name: Validate JavaScript syntax
         run: |
-          node --check app.js
-          node --check core.mjs
-      - name: Test scoring and question generation
-        run: node --test tests/core.test.mjs
+          node --check electron/main.cjs
+          for file in js/*.js; do node --check "$file"; done
+      - name: Run smoke tests
+        run: node --test tests/smoke.test.mjs
