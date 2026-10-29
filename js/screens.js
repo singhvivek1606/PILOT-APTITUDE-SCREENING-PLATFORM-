@@ -5,7 +5,7 @@ window.AVScreens = (() => {
   // screens.js — non-test page renderers (pure HTML strings)
   // ============================================================
 
-  const { MODULES, state, STORAGE_KEYS, write } = window.AVCore;
+  const { MODULES, state } = window.AVCore;
   const {
     escapeHtml,
     heroGauge,
@@ -16,7 +16,6 @@ window.AVScreens = (() => {
     mathsPreview,
     taskPreview,
     scoreChart,
-    toast,
   } = window.AVUI;
   function renderHome() {
     if (!state.candidate)

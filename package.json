@@ -13,11 +13,21 @@
     "dist:mac": "electron-builder --mac dmg zip",
     "dist:mac:arm64": "electron-builder --mac dmg zip --arm64",
     "dist:mac:x64": "electron-builder --mac dmg zip --x64",
-    "dist:mac:universal": "electron-builder --mac dmg zip --universal"
+    "dist:mac:universal": "electron-builder --mac dmg zip --universal",
+    "prepare": "husky",
+    "lint": "eslint .",
+    "check:syntax": "node scripts/check-syntax.mjs",
+    "test": "node --test tests/smoke.test.mjs",
+    "build": "electron-builder --dir",
+    "verify": "npm run lint && npm run check:syntax && npm test && npm run build"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "electron": "^38.0.0",
-    "electron-builder": "^26.0.0"
+    "electron-builder": "^26.0.0",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "husky": "^9.1.7"
   },
   "build": {
     "appId": "com.aerovector.pilotaptitude",

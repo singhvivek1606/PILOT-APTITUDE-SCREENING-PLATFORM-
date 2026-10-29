@@ -17,10 +17,12 @@ Context for AI coding agents (Claude Code, Codex, Cursor, etc.). Read this befor
 npm install                 # first time (never copy node_modules between OSes)
 npm start                   # run the Electron app (same as npm run dev)
 
-# Checks (same as CI in .github/workflows/validate.yml)
-node --check electron/main.cjs
-for f in js/*.js; do node --check "$f"; done
-node --test tests/smoke.test.mjs
+# Checks
+npm run lint                # ESLint (eslint.config.mjs, flat config, recommended rules)
+npm run check:syntax        # node --check on electron/main.cjs + js/*.js (scripts/check-syntax.mjs)
+npm test                    # node:test smoke tests
+npm run build               # electron-builder --dir: unpacked app for current OS in dist/ (quick packaging check)
+npm run verify              # all of the above in order
 
 # Packaging (output in dist/, unsigned)
 npm run dist:win            # Windows NSIS installer (run on Windows)
@@ -28,6 +30,8 @@ npm run dist:win:portable   # Windows portable exe
 npm run dist:mac            # macOS dmg + zip for current arch (run on a Mac)
 npm run dist:mac:arm64 | dist:mac:x64 | dist:mac:universal
 ```
+
+**Git hooks (Husky):** `npm install` runs `prepare` → `husky`, which enables `.husky/pre-commit`. Every commit runs lint → syntax check → smoke tests → build, and is aborted if any step fails. CI (`.github/workflows/validate.yml`) runs lint, syntax and tests. Don't bypass the hook with `--no-verify` unless the user asks.
 
 Double-click helpers: `RUN_ELECTRON.cmd` / `BUILD_WINDOWS_INSTALLER.cmd` (Windows), `RUN_ELECTRON_MAC.command` / `BUILD_MAC_APP.command` (macOS).
 
@@ -78,6 +82,6 @@ Session setup lives in `app.js` `startSession()`. Per-module logic and grading l
 1. Keep it dependency-free in the renderer. Don't add frameworks, bundlers or CDNs. The app runs offline.
 2. If you add or rename a module, update `MODULES` in `core.js`, `startSession()` in `app.js`, the view map in `assessment.js` `renderAssessment()`, the previews in `ui.js`/`screens.js`, and the smoke test, which asserts exactly six module ids.
 3. If you add a new JS file, add it to `index.html` in dependency order. `package.json` `build.files` already includes `js/**/*`.
-4. Run the syntax checks and smoke tests (above) before you finish. For UI changes, also run `npm start` and check the change.
+4. Run `npm run verify` (the same checks as the pre-commit hook) before you finish. For UI changes, also run `npm start` and check the change.
 5. Keep `README.md` in sync when you change features, commands, or the folder structure.
 6. Never commit `node_modules/` or `dist/`.

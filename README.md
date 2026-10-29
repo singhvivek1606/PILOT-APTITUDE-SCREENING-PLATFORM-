@@ -75,6 +75,19 @@ npm run dist:win:portable
 
 The files appear under `dist/` after a successful build. `BUILD_WINDOWS_INSTALLER.cmd` provides a Windows double-click helper. Windows output is unsigned and may show SmartScreen warnings until appropriately signed.
 
+### Checks and pre-commit hook
+
+`npm install` also enables a [Husky](https://typicode.github.io/husky/) pre-commit hook. Every `git commit` runs these steps and is aborted if one fails:
+
+```bash
+npm run lint           # ESLint
+npm run check:syntax   # node --check on all app scripts
+npm test               # smoke tests
+npm run build          # electron-builder --dir (unpacked app in dist/, no installer)
+```
+
+Run them all manually with `npm run verify`.
+
 ## 4. Core features
 
 - Welcome screen and candidate registration before starting assessments.

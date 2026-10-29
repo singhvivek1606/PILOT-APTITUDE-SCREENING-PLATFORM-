@@ -1,0 +1,8 @@
+echo "husky: lint"
+npm run lint
+echo "husky: syntax check"
+npm run check:syntax
+echo "husky: smoke tests"
+npm test
+echo "husky: build (electron-builder --dir)"
+npm run build

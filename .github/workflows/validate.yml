@@ -13,9 +13,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
       - name: Validate JavaScript syntax
-        run: |
-          node --check electron/main.cjs
-          for file in js/*.js; do node --check "$file"; done
+        run: npm run check:syntax
       - name: Run smoke tests
-        run: node --test tests/smoke.test.mjs
+        run: npm test
