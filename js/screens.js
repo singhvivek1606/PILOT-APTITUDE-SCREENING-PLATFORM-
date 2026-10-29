@@ -5,9 +5,10 @@ window.AVScreens = (() => {
   // screens.js — non-test page renderers (pure HTML strings)
   // ============================================================
 
-  const { MODULES, state } = window.AVCore;
+  const { MODULES, MEMORY_LEVELS, MEMORY_RAMP, state } = window.AVCore;
   const {
     escapeHtml,
+    ring,
     heroGauge,
     memoryPreview,
     controlPreview,
@@ -330,9 +331,9 @@ window.AVScreens = (() => {
 
     const guides = {
       memory: [
-        "Four flight parameters are displayed for a fixed memorisation period.",
-        "One or more values are then concealed — recall and enter the missing readings.",
-        "Suffixes such as <code>240s</code> or plain numbers are both accepted.",
+        "After a 3-2-1 countdown, four flight parameters are displayed for a fixed memorisation period.",
+        "One or more values are then concealed. Type the missing readings; use ← → to move between boxes and Enter to continue.",
+        "Each round ends with a short review. Suffixes such as <code>240s</code> or plain numbers are both accepted.",
       ],
       control: [
         "The test has two stages: first the round needle, then the horizontal ball.",
@@ -370,72 +371,116 @@ window.AVScreens = (() => {
       task: taskPreview(),
     }[id];
 
-    const difficultySelector =
-      id === "memory"
-        ? `
-    <label class="field-label" for="difficulty">Memorisation level</label>
-    <select class="field" id="difficulty">
-      <option value="easy"   ${sel.difficulty === "easy" ? "selected" : ""}>Easy — 8 s · 1 missing</option>
-      <option value="medium" ${sel.difficulty === "medium" ? "selected" : ""}>Medium — 6 s · 2 missing</option>
-      <option value="hard"   ${sel.difficulty === "hard" ? "selected" : ""}>Hard — 5 s · 4 missing</option>
-    </select>`
-        : "";
+    const inputs = {
+      memory: "Keyboard · ← → · Enter",
+      control: "Arrow keys (rebindable)",
+      maths: "Keyboard",
+      slalom: "Left / Right keys",
+      orientation: "Keys 1–4 or click",
+      task: "Keyboard + alert key",
+    };
 
-    return (
-      pageHead(`Assessment ${m.marker}`, m.name, m.desc) +
-      `
-    <div class="page-actions" style="justify-content:flex-start; margin-bottom:12px;">
+    return `
+    <div class="briefing-top">
       <button class="btn secondary" data-page="home">← Back</button>
+      <span class="crumb">Assessment ${m.marker} · Pre-flight briefing</span>
     </div>
     <div class="briefing">
-      <div class="briefing-visual">${preview}<div class="eyebrow">Sample display</div></div>
+      <div class="briefing-visual">
+        <div class="cockpit-display">
+          <div class="cockpit-display-screen">${preview}</div>
+          <div class="cockpit-display-caption"><span>Sample display</span><span>${escapeHtml(m.kind)}</span></div>
+        </div>
+        <dl class="briefing-specs">
+          <div><dt>Format</dt><dd>${escapeHtml(m.time)}</dd></div>
+          <div><dt>Skill</dt><dd>${escapeHtml(m.kind)}</dd></div>
+          <div><dt>Input</dt><dd>${escapeHtml(inputs[id])}</dd></div>
+        </dl>
+      </div>
       <div class="briefing-instructions">
-        <h1>${escapeHtml(m.name)}</h1>
-        <p class="muted">${escapeHtml(m.desc)}</p>
         <div>
-          <div class="field-label" style="margin-bottom:8px">Procedure</div>
-          <ol class="briefing-steps">${guides[id].map((s) => `<li>${s}</li>`).join("")}</ol>
+          <div class="eyebrow">Module ${m.marker}</div>
+          <h1>${escapeHtml(m.name)}</h1>
+          <p class="muted">${escapeHtml(m.desc)}</p>
         </div>
-        <div class="mode-picker">
-          <button class="mode-option ${sel.mode === "practice" ? "selected" : ""}" data-mode="practice" data-for="${id}">
-            <b>Practice</b><small>Unscored — repeat as needed</small>
-          </button>
-          <button class="mode-option ${sel.mode === "assessment" ? "selected" : ""}" data-mode="assessment" data-for="${id}">
-            <b>Scored assessment</b><small>Result saved to history</small>
-          </button>
+        <div>
+          <div class="field-label">Procedure</div>
+          <ol class="briefing-steps">${guides[id].map((s) => `<li><span>${s}</span></li>`).join("")}</ol>
         </div>
-        ${difficultySelector}
+        <div>
+          <div class="field-label">Mode</div>
+          <div class="mode-picker">
+            <button class="mode-option ${sel.mode === "practice" ? "selected" : ""}" data-mode="practice" data-for="${id}">
+              <b>Practice</b><small>Unscored · repeat as needed</small>
+            </button>
+            <button class="mode-option ${sel.mode === "assessment" ? "selected" : ""}" data-mode="assessment" data-for="${id}">
+              <b>Scored assessment</b><small>Result saved to history</small>
+            </button>
+          </div>
+        </div>
+        ${id === "memory" ? memoryLevelPicker(sel) : ""}
       </div>
     </div>
     <div class="bottom-bar">
-      <span class="bottom-bar-text">${sel.mode === "assessment" ? "Scored result will be saved in Results and History" : "Practice only · results are not stored"}</span>
+      <span class="bottom-bar-text">${sel.mode === "assessment" ? "Scored result will be saved in Results and History" : "Practice only · results are not stored"}<span class="bottom-bar-hint"> · press <kbd>Enter</kbd> to start</span></span>
       <button class="btn" data-action="start" data-module="${id}">Start ${sel.mode === "assessment" ? "scored assessment" : "practice"} →</button>
-    </div>`
-    );
+    </div>`;
+  }
+
+  // Practice picks a level; scored runs always ramp easy → hard (MEMORY_RAMP).
+  function memoryLevelPicker(sel) {
+    if (sel.mode === "assessment") {
+      return `<div>
+        <div class="field-label">Difficulty ramp</div>
+        <div class="ramp">${MEMORY_RAMP.map(
+          (lv, i) =>
+            `<span class="ramp-step ${lv}"><small>R${i + 1}</small>${MEMORY_LEVELS[lv].label}</span>`,
+        ).join("")}</div>
+        <p class="small muted" style="margin-top:8px">Scored runs step from easy to hard automatically.</p>
+      </div>`;
+    }
+    return `<div>
+      <div class="field-label" id="difficulty-label">Memorisation level</div>
+      <div class="seg" role="radiogroup" aria-labelledby="difficulty-label">
+        ${Object.entries(MEMORY_LEVELS)
+          .map(
+            ([key, lv]) => `<label class="seg-opt">
+          <input type="radio" name="difficulty" value="${key}" ${sel.difficulty === key ? "checked" : ""}>
+          <span><b>${lv.label}</b><small>${lv.study} s · ${lv.hide} hidden</small></span>
+        </label>`,
+          )
+          .join("")}
+      </div>
+    </div>`;
   }
 
   function renderComplete(s) {
-    return (
-      pageHead(
-        "Assessment / Complete",
-        "Assessment complete",
-        s.mode === "practice"
-          ? "Practice — result not saved."
-          : "Scored assessment — result saved to local history.",
-      ) +
-      `
-    <div class="complete-card">
-      <div class="eyebrow">${s.mode === "practice" ? "PRACTICE RESULT · NOT SAVED" : "SCORED RESULT · SAVED TO THIS DEVICE"}</div>
-      ${s.mode === "assessment" ? statusChip(s.score) : '<span class="result-status practice">PRACTICE</span>'}
-      <div class="complete-score">${s.score}<small> / 100</small></div>
-      <h2>${escapeHtml(MODULES[s.module].name)}</h2>
-      <p>${escapeHtml(s.details)}</p>
-      <div class="form-actions" style="justify-content:center">
-        <button class="btn secondary" data-go="${s.module}">Run again</button>
-        <button class="btn primary" data-page="${s.mode === "assessment" ? "results" : "tests"}">${s.mode === "assessment" ? "View saved results" : "Choose a scored assessment"} →</button>
+    const scored = s.mode === "assessment";
+    const tone = !scored ? "practice" : Number(s.score) >= 60 ? "pass" : "fail";
+    const breakdown = window.AVAssess?.renderBreakdown?.(s) || "";
+    return `
+    <section class="result-hero ${tone}">
+      <div class="result-ring" style="--score:${s.score}">
+        ${ring(s.score / 100, {
+          size: 168,
+          stroke: 10,
+          cls: "score-ring",
+          inner: `<span class="score-num" aria-hidden="true"></span><small>/ 100</small><span class="sr-only">${s.score} out of 100</span>`,
+        })}
       </div>
-    </div>`
-    );
+      <div class="result-copy">
+        <div class="eyebrow">${scored ? "Scored result · saved to this device" : "Practice result · not saved"}</div>
+        <h1>${escapeHtml(MODULES[s.module].name)} ${scored ? "assessment" : "practice"} complete</h1>
+        ${scored ? statusChip(s.score) : '<span class="result-status practice">PRACTICE</span>'}
+        <p class="result-details">${escapeHtml(s.details)}</p>
+        <p class="small muted">Training prototype. The 60% PASS mark is a demo rule, not an official pilot selection standard.</p>
+        <div class="form-actions">
+          <button class="btn secondary" data-go="${s.module}">Run again</button>
+          <button class="btn primary" data-page="${scored ? "results" : "tests"}">${scored ? "View saved results" : "Choose a scored assessment"} →</button>
+        </div>
+      </div>
+    </section>
+    ${breakdown}`;
   }
 
   // --- helpers ---

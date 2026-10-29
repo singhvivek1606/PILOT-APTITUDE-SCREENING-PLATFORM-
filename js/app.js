@@ -63,7 +63,12 @@
   }
 
   function leavePage(next) {
-    if (state.session?.phase === "running" && next !== state.page) {
+    // Any phase except "complete" is live (Memory uses ready/study/recall/feedback).
+    if (
+      state.session &&
+      state.session.phase !== "complete" &&
+      next !== state.page
+    ) {
       if (
         state.session.mode === "assessment" &&
         !confirm("Leave the scored assessment? The attempt will not be saved.")
@@ -178,6 +183,8 @@
       const inp = $("main input", appEl);
       if (inp) inp.focus();
     }
+    if (s && s.module === page && s.module === "memory" && s.phase === "recall")
+      $("[data-memory-field]", appEl)?.focus();
   }
 
   function escapeText(v) {
@@ -234,6 +241,7 @@
       s.difficulty = cfg.difficulty;
       s.roundCorrect = 0;
       s.roundTotal = 0;
+      s.rounds = [];
       assess.randomMemoryRound(s);
     }
     if (id === "maths") {
@@ -341,18 +349,7 @@
     last = now;
 
     if (s.module === "memory") {
-      if (s.phase === "recall") s.remaining = (now - s.phaseBegan) / 1000;
-      if (s.phase === "study") {
-        s.remaining = Math.max(0, s.studiedFor - (now - s.phaseBegan) / 1000);
-        const bar = document.querySelector("#study-bar");
-        if (bar) bar.style.width = (100 * s.remaining) / s.studiedFor + "%";
-        if (s.remaining <= 0) {
-          s.phase = "recall";
-          s.phaseBegan = now;
-          s.remaining = 0;
-          render();
-        }
-      }
+      assess.updateMemory(s, now);
     } else if (s.module === "slalom") {
       s.elapsed = (now - s.runStart) / 1000;
       s.remaining = Math.max(0, s.duration - s.elapsed);
@@ -397,6 +394,7 @@
 
     const timer = document.querySelector("#timer");
     if (timer) timer.textContent = fmtTime(s.remaining);
+    assess.syncHud(s);
 
     raf = requestAnimationFrame(tick);
   }
@@ -469,8 +467,59 @@
       return;
     }
 
+    // Enter on a module briefing starts it (focused buttons/links/fields keep their own Enter).
+    if (
+      e.key === "Enter" &&
+      !e.repeat &&
+      MODULES[state.page] &&
+      state.session?.module !== state.page &&
+      !e.target.closest?.("input, select, textarea, button, a")
+    ) {
+      e.preventDefault();
+      try {
+        startSession(state.page);
+      } catch (err) {
+        reportStartError(err);
+      }
+      return;
+    }
+
     const s = state.session;
     if (!s || s.phase === "complete" || s.module !== state.page) return;
+
+    if (s.module === "memory") {
+      const inField =
+        s.phase === "recall" && e.target.matches("[data-memory-field]");
+      // Physical arrow keys only: rebound letter keys must stay typeable (e.g. the "a" ident).
+      const step = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+      const plain = !e.altKey && !e.metaKey && !e.ctrlKey;
+      if (
+        s.phase === "recall" &&
+        !inField &&
+        plain &&
+        !e.target.closest("#memory-answer button") &&
+        (e.key.length === 1 || e.key === "Enter" || step)
+      ) {
+        // Focus drifted (e.g. after cancelling the leave dialog): pull it back into a box.
+        // A typed character then lands in that box; Enter/arrows only refocus.
+        if (e.key.length !== 1) e.preventDefault();
+        assess.memoryFocus();
+      } else if (inField && e.key === "Enter") {
+        e.preventDefault();
+        assess.memoryEnter(e.target);
+      } else if (inField && step && plain && !e.shiftKey) {
+        e.preventDefault();
+        assess.memoryStep(e.target, step);
+      } else if (
+        s.phase === "feedback" &&
+        !e.repeat &&
+        (e.key === "Enter" || normalizedKey(e) === "Space")
+      ) {
+        e.preventDefault();
+        assess.advanceMemory();
+      }
+      return;
+    }
 
     if (s.module === "orientation" && /^[1-4]$/.test(e.key) && !e.repeat) {
       e.preventDefault();
@@ -606,6 +655,9 @@
         case "ack":
           assess.clearAlert();
           break;
+        case "memory-next":
+          assess.advanceMemory();
+          break;
         case "export":
           exportResults();
           break;
@@ -737,7 +789,7 @@
   }
 
   function change(e) {
-    if (e.target.id === "difficulty" && MODULES[state.page]) {
+    if (e.target.name === "difficulty" && MODULES[state.page]) {
       state.selection[state.page].difficulty = e.target.value;
     }
   }
@@ -877,8 +929,7 @@
 
   document.addEventListener("click", click);
   document.addEventListener("submit", submit);
-  document.addEventListener("change", change);
-  window.addEventListener("keydown", keyDown);
+  document.addEventListener("change", change);  window.addEventListener("keydown", keyDown);
   window.addEventListener("keyup", keyUp);
   window.addEventListener("blur", () => app.held.clear());
   window.addEventListener("hashchange", () => {

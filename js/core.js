@@ -65,6 +65,15 @@ window.AVCore = (() => {
     },
   };
 
+  // Memory levels: study window (s) and how many of the four readings are concealed.
+  // Scored runs ignore the selection and ramp through MEMORY_RAMP instead.
+  const MEMORY_LEVELS = {
+    easy: { label: "Easy", study: 8, hide: 1 },
+    medium: { label: "Medium", study: 6, hide: 2 },
+    hard: { label: "Hard", study: 5, hide: 4 },
+  };
+  const MEMORY_RAMP = ["easy", "medium", "medium", "hard", "hard"];
+
   // Shared mutable state — mutated by screens/assessments via import
   const memoryStore = {};
 
@@ -128,6 +137,8 @@ window.AVCore = (() => {
     STORAGE_KEYS,
     DEFAULT_KEYS,
     MODULES,
+    MEMORY_LEVELS,
+    MEMORY_RAMP,
     state,
     app,
     read,

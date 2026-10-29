@@ -55,14 +55,33 @@ function heroGauge() {
     </svg>`;
 }
 
+// Circular progress ring. The arc length is driven by the --p custom property (0–1),
+// so the tick loop can move it without re-rendering. pathLength=100 keeps the CSS simple.
+function ring(p, { size = 64, stroke = 5, id = '', cls = '', inner = '' } = {}) {
+  const c = size / 2, r = c - stroke / 2;
+  return `<div class="ins-ring ${cls}"${id ? ` id="${id}"` : ''} style="--p:${clamp(Number(p) || 0, 0, 1).toFixed(3)};width:${size}px;height:${size}px">
+    <svg viewBox="0 0 ${size} ${size}" aria-hidden="true">
+      <circle class="ins-ring-track" cx="${c}" cy="${c}" r="${r}" stroke-width="${stroke}"/>
+      <circle class="ins-ring-arc" cx="${c}" cy="${c}" r="${r}" stroke-width="${stroke}" pathLength="100" transform="rotate(-90 ${c} ${c})"/>
+    </svg>
+    <div class="ins-ring-inner">${inner}</div>
+  </div>`;
+}
+
 function memoryPreview() {
+  const cells = [
+    ['ALT', 'a', '12,400', 'ft'],
+    ['IAS', 's', '245', 'kts'],
+    ['HDG', 'h', '', 'MAG'],
+    ['COM', 'r', '121.50', 'MHz'],
+  ];
   return `
-    <div class="data-plate" aria-hidden="true">
-      <div class="data-plate-title">New Data</div>
-      <div class="data-row"><span class="lbl">Altitude</span><span class="ident">(a)</span><span class="val">12,000</span></div>
-      <div class="data-row"><span class="lbl">Speed</span><span class="ident">(s)</span><span class="val">240</span></div>
-      <div class="data-row"><span class="lbl">Heading</span><span class="ident">(h)</span><span class="val">090</span></div>
-      <div class="data-row"><span class="lbl">Radio</span><span class="ident">(r)</span><span class="val">121.50</span></div>
+    <div class="ins-strip is-preview" aria-hidden="true">
+      ${cells.map(([code, ident, val, unit]) => `
+        <div class="ins-cell ${val ? '' : 'is-input'}">
+          <div class="ins-cell-top"><span>${code}</span><span class="ins-ident">${ident}</span></div>
+          <div class="ins-readout"><strong class="ins-value">${val || '– – –'}</strong><span class="ins-unit">${unit}</span></div>
+        </div>`).join('')}
     </div>`;
 }
 
@@ -165,5 +184,5 @@ function scoreChart(rows) {
   </svg><p class="small muted">Each point is one scored assessment, oldest to newest.</p>`;
 }
 
-return { escapeHtml, clamp, rand, pad, fmtTime, toast, heroGauge, memoryPreview, controlPreview, slalomPreview, orientationPreview, mathsPreview, taskPreview, planeSvg, scoreChart };
+return { escapeHtml, clamp, rand, pad, fmtTime, toast, ring, heroGauge, memoryPreview, controlPreview, slalomPreview, orientationPreview, mathsPreview, taskPreview, planeSvg, scoreChart };
 })();

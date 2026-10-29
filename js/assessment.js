@@ -5,8 +5,8 @@ window.AVAssess = (() => {
   // assessment.js — test view renderers + per-module logic
   // ============================================================
 
-  const { MODULES, state, app } = window.AVCore;
-  const { escapeHtml, clamp, rand, fmtTime, planeSvg } = window.AVUI;
+  const { MODULES, MEMORY_LEVELS, MEMORY_RAMP, state, app } = window.AVCore;
+  const { escapeHtml, clamp, rand, fmtTime, ring, planeSvg } = window.AVUI;
   // ---- public dispatch ----
 
   function renderAssessment(s) {
@@ -22,110 +22,283 @@ window.AVAssess = (() => {
       orientation: orientationView,
       task: taskView,
     };
-    return views[s.module](s);
+    // .ins-test scopes the instrument design system (css/instrument.css) to test screens.
+    return `<div class="ins-test ins-test-${s.module}">${views[s.module](s)}</div>`;
   }
 
-  // ---- shared chrome ----
+  // ============================================================
+  // HUD — shared in-test header (all six modules)
+  // ============================================================
 
   function runHead(s, help) {
-    const progress =
+    const m = MODULES[s.module];
+    const candidate = String(state.candidate?.first || "").trim();
+    const meta = [
+      `Module ${m.marker}`,
+      s.mode === "practice" ? "Practice · unscored" : "Scored assessment",
+      candidate && `Candidate ${candidate}`,
+    ]
+      .filter(Boolean)
+      .map((t) => `<span>${escapeHtml(t)}</span>`)
+      .join("");
+    return `<header class="ins-head">
+    <div class="ins-head-id">
+      <div class="ins-head-meta">${meta}</div>
+      <h1>${escapeHtml(m.name)}</h1>
+      <p>${escapeHtml(help)}</p>
+    </div>
+    ${hudProgress(s)}
+    <div class="ins-clock">
+      <div class="ins-clock-read">
+        <span class="ins-clock-label">${escapeHtml(clockLabel(s))}</span>
+        <span class="ins-clock-time" id="timer">${fmtTime(s.remaining)}</span>
+      </div>
+      ${ring(hudFraction(s), {
+        size: 40,
+        stroke: 2,
+        id: "timer-ring",
+        cls: hudCaution(s) ? "caution" : "",
+      })}
+      <div class="ins-head-actions">
+        <button class="ins-head-btn" data-action="back" aria-label="Go back to overview" title="Back to overview">Back</button>
+        <button class="ins-head-btn" data-action="stop" aria-label="Exit test without saving" title="Exit without saving">Exit</button>
+      </div>
+    </div>
+  </header>`;
+  }
+
+  function clockLabel(s) {
+    if (s.module === "memory")
+      return { ready: "Get ready", study: "Study time" }[s.phase] || "Answer time";
+    return "Time remaining";
+  }
+
+  // Segmented progress: one hairline segment per round / question / run.
+  function hudProgress(s) {
+    const spec =
       s.module === "memory"
-        ? `Round ${s.index + 1} of ${s.total}`
+        ? ["Round", s.index, s.total]
         : s.module === "maths" || s.module === "orientation"
-          ? `Question ${s.index + 1} of ${s.total}`
+          ? ["Question", s.index, s.total]
           : s.module === "slalom"
-            ? `Run ${s.run + 1} of ${s.totalRuns}`
-            : "";
-    const clockLabel =
-      s.module === "memory" && s.phase === "recall"
-        ? "Answer time"
-        : "Time remaining";
-    return `<div class="test-head">
-    <div>
-      <div class="crumb">${s.mode === "practice" ? "Practice · Unscored" : "Scored assessment"}</div>
-      <h1>${escapeHtml(MODULES[s.module].name)}</h1>
-      <p>${escapeHtml(help)}${progress ? " · " + progress : ""}</p>
-    </div>
-    <div class="test-clock">
-      <div class="label">${clockLabel}</div>
-      <div class="time" id="timer">${fmtTime(s.remaining)}</div>
-      <button class="btn secondary" data-action="back" style="margin-top:6px" aria-label="Go back to overview">← Back</button>
-      <button class="btn secondary" data-action="stop" style="margin-top:6px" aria-label="Exit test without saving">Exit test</button>
-    </div>
-  </div>`;
+            ? ["Run", s.run, s.totalRuns]
+            : null;
+    if (!spec || !spec[2]) return `<div class="ins-progress" aria-hidden="true"></div>`;
+    const [label, index, total] = spec;
+    const current = Math.min(index, total - 1);
+    const pips = Array.from(
+      { length: total },
+      (_, i) =>
+        `<i class="ins-pip ${i < current ? "done" : i === current ? "current" : ""}"></i>`,
+    ).join("");
+    return `<div class="ins-progress" role="img" aria-label="${label} ${current + 1} of ${total}">
+      <div class="ins-progress-label">${label} <b>${current + 1}</b> of ${total}</div>
+      <div class="ins-pips">${pips}</div>
+    </div>`;
+  }
+
+  // 0–1 fill of the clock ring. Memory recall counts up towards the speed reference.
+  function hudFraction(s) {
+    if (s.module === "memory") {
+      if (s.phase === "ready") return s.remaining / s.readyFor;
+      if (s.phase === "study") return s.remaining / s.studiedFor;
+      return clamp(s.remaining / MEMORY_RECALL_REF, 0, 1);
+    }
+    return s.duration ? clamp(s.remaining / s.duration, 0, 1) : 0;
+  }
+
+  function hudCaution(s) {
+    if (s.module === "memory") {
+      if (s.phase === "study") return s.remaining <= 2;
+      return s.phase !== "ready" && s.remaining > MEMORY_RECALL_REF;
+    }
+    return s.duration > 0 && s.remaining <= Math.min(10, s.duration * 0.2);
+  }
+
+  // Called every frame by the tick loop, next to the #timer text update.
+  function syncHud(s) {
+    const el = document.querySelector("#timer-ring");
+    if (!el) return;
+    el.style.setProperty("--p", hudFraction(s).toFixed(3));
+    el.classList.toggle("caution", hudCaution(s));
   }
 
   // ============================================================
   // MEMORY
   // ============================================================
 
-  function memoryView(s) {
-    const labels = {
-      altitude: "Altitude",
-      speed: "Airspeed",
-      heading: "Heading",
-      radio: "Radio",
-    };
-    const idents = { altitude: "a", speed: "s", heading: "h", radio: "r" };
+  const MEMORY_FIELDS = {
+    altitude: { label: "Altitude", code: "ALT", ident: "a", unit: "ft" },
+    speed: { label: "Airspeed", code: "IAS", ident: "s", unit: "kts" },
+    heading: { label: "Heading", code: "HDG", ident: "h", unit: "MAG" },
+    radio: { label: "Radio", code: "COM", ident: "r", unit: "MHz" },
+  };
+  const MEMORY_READY = 2.4; // 3 · 2 · 1 countdown before each round (not timed)
+  const MEMORY_REVIEW = 2.2; // per-round feedback before auto-advance
+  const MEMORY_RECALL_REF = 22; // recall time that earns no speed credit (gradeSpeed)
 
-    const reading = Object.keys(labels)
-      .map((k) => {
-        const hide = s.phase === "recall" && s.targets.includes(k);
-        return `<div class="reading ${hide ? "blank" : ""}">
-      <label>${labels[k]} (${idents[k]})</label>
-      <strong>${hide ? "•••" : escapeHtml(displayFlight(k, s.values[k]))}</strong>
-    </div>`;
-      })
+  function memoryView(s) {
+    const level = MEMORY_LEVELS[s.level];
+    const help = {
+      ready: "The flight data appears in a moment.",
+      study: "Memorise all four readings.",
+      recall: "Enter the hidden readings from memory.",
+      feedback: "Round review.",
+    }[s.phase];
+    const phase = {
+      ready: "Standby",
+      study: "Memorise",
+      recall: "Recall",
+      feedback: "Review",
+    }[s.phase];
+    const cells = Object.keys(MEMORY_FIELDS)
+      .map((k) => memoryCell(s, k))
       .join("");
 
-    const studyBlock =
-      s.phase === "study"
-        ? `<div class="panel" style="margin-top:14px">
-        <div class="field-label">Memorisation window</div>
-        <div style="height:6px;background:#e1e8ee;border-radius:1px;overflow:hidden">
-          <div id="study-bar" style="height:100%;background:#1e5a8a;width:100%;transition:width .1s linear"></div>
-        </div>
-        <p class="small muted" style="margin-top:8px">Memorise all four readings — they will be concealed automatically.</p>
-      </div>`
-        : "";
-
-    const recallBlock =
-      s.phase === "recall"
-        ? `<section class="panel" style="margin-top:14px">
-        <h3 class="panel-title">Recall — fill in the concealed values</h3>
-        <form id="memory-answer">
-          <div class="field-grid">
-            ${s.targets
-              .map(
-                (k) => `<label class="field-group">
-              <span class="field-label">${labels[k]}</span>
-              <input class="field" name="${k}" inputmode="decimal" autocomplete="off" required placeholder="e.g. 240 or 240${idents[k]}">
-            </label>`,
-              )
-              .join("")}
-          </div>
-          <button class="btn primary" type="submit">Submit recall</button>
-        </form>
-      </section>`
-        : "";
-
     return (
-      runHead(
-        s,
-        s.phase === "study"
-          ? "Memorise the flight data shown below."
-          : "Enter the concealed readings.",
-      ) +
-      `<div class="panel"><div class="readings">${reading}</div>${studyBlock}</div>${recallBlock}`
+      runHead(s, help) +
+      `<form id="memory-answer" class="ins-panel phase-${s.phase}" autocomplete="off">
+      <div class="ins-panel-head">
+        <span class="ins-phase ${s.phase === "recall" ? "is-input" : ""}">${phase}</span>
+        <span class="ins-panel-meta">${escapeHtml(level.label)} · ${level.study} s · ${s.targets.length} of 4 hidden</span>
+        <span class="sr-only" aria-live="polite">${escapeHtml(memoryAnnouncement(s))}</span>
+      </div>
+      <div class="ins-strip">${cells}${s.phase === "ready" ? memoryCountdown(s) : ""}</div>
+      ${memoryLine(s)}
+      ${memoryFooter(s)}
+    </form>`
     );
   }
 
-  function displayFlight(k, v) {
-    if (k === "altitude") return Number(v).toLocaleString("en-US") + " ft";
-    if (k === "speed") return v + " kts";
+  function memoryCell(s, k) {
+    const f = MEMORY_FIELDS[k];
+    const hidden =
+      s.targets.includes(k) && (s.phase === "recall" || s.phase === "feedback");
+    const top = `<div class="ins-cell-top"><span>${f.code}</span><span class="ins-ident">${f.ident}</span></div>`;
+    const reading = (inner) =>
+      `<div class="ins-readout">${inner}<span class="ins-unit">${f.unit}</span></div>`;
+    const value = (text) => reading(`<strong class="ins-value">${text}</strong>`);
+    const foot = (text, cls = "") =>
+      `<div class="ins-cell-foot ${cls}">${text}</div>`;
+
+    if (s.phase === "ready") {
+      return `<div class="ins-cell is-blank">${top}${value("– – –")}${foot(f.label)}</div>`;
+    }
+    if (hidden && s.phase === "recall") {
+      return `<label class="ins-cell is-input" for="mem-${k}">${top}${reading(
+        `<input class="ins-input" id="mem-${k}" name="${k}" inputmode="decimal" autocomplete="off" spellcheck="false"
+          required placeholder="– – –" aria-label="${f.label} (${f.unit})" data-memory-field>`,
+      )}${foot(f.label)}</label>`;
+    }
+    if (hidden) {
+      const r = s.rounds[s.rounds.length - 1];
+      const ok = r.marks[k];
+      return `<div class="ins-cell ${ok ? "is-ok" : "is-miss"}">${top}${value(escapeHtml(flightNumber(k, s.values[k])))}${foot(
+        ok ? "✓ Correct" : `✗ Entered ${escapeHtml(r.answers[k] || "nothing")}`,
+        "ins-verdict",
+      )}</div>`;
+    }
+    return `<div class="ins-cell ${s.phase === "study" ? "is-live" : "is-dim"}">${top}${value(escapeHtml(flightNumber(k, s.values[k])))}${foot(f.label)}</div>`;
+  }
+
+  // Hairline under the strip: drains during study, fills during review.
+  function memoryLine(s) {
+    if (s.phase === "study")
+      return `<div class="ins-line"><div id="study-bar" class="ins-line-fill" style="width:${(100 * s.remaining) / s.studiedFor}%"></div></div>`;
+    if (s.phase === "feedback")
+      return `<div class="ins-line"><div id="review-bar" class="ins-line-fill review" style="width:0%"></div></div>`;
+    return `<div class="ins-line"></div>`;
+  }
+
+  function memoryFooter(s) {
+    if (s.phase === "recall") {
+      return `<div class="ins-foot">
+        <ul class="ins-keys">
+          <li><kbd>←</kbd><kbd>→</kbd> Move between boxes</li>
+          <li><kbd>Enter</kbd> Next box, then submit</li>
+          <li>Units optional</li>
+        </ul>
+        <button class="ins-btn" type="submit">Submit <kbd>Enter</kbd></button>
+      </div>`;
+    }
+    if (s.phase === "feedback") {
+      const r = s.rounds[s.rounds.length - 1];
+      const last = s.index + 1 >= s.total;
+      return `<div class="ins-foot">
+        <p class="ins-note"><b>${r.right} of ${r.targets.length}</b> correct · ${r.seconds.toFixed(1)} s</p>
+        <button class="ins-btn" type="button" data-action="memory-next">${last ? "See results" : "Next round"} <kbd>Enter</kbd></button>
+      </div>`;
+    }
+    const note =
+      s.phase === "study"
+        ? `Memorise all four readings. ${s.targets.length} will be hidden when the line runs out.`
+        : `Round ${s.index + 1} of ${s.total} begins shortly.`;
+    return `<div class="ins-foot"><p class="ins-note">${note}</p></div>`;
+  }
+
+  function memoryCountdown(s) {
+    const n = Math.max(1, Math.ceil(s.remaining / (s.readyFor / 3)));
+    return `<div class="ins-countdown" aria-hidden="true">
+      <span class="ins-countdown-label">Round ${s.index + 1} of ${s.total}</span>
+      <span class="ins-countdown-num beat" id="countdown">${n}</span>
+    </div>`;
+  }
+
+  function memoryAnnouncement(s) {
+    if (s.phase === "ready")
+      return `Round ${s.index + 1} of ${s.total}. ${MEMORY_LEVELS[s.level].label}.`;
+    if (s.phase === "study") return "Memorise the four readings.";
+    if (s.phase === "recall")
+      return `Values hidden. Enter ${s.targets.map((k) => MEMORY_FIELDS[k].label.toLowerCase()).join(", ")}.`;
+    const r = s.rounds[s.rounds.length - 1];
+    return `${r.right} of ${r.targets.length} correct.`;
+  }
+
+  function flightNumber(k, v) {
+    if (k === "altitude") return Number(v).toLocaleString("en-US");
     if (k === "heading") return String(v).padStart(3, "0") + "°";
-    if (k === "radio") return v + " MHz";
-    return v;
+    return String(v);
+  }
+
+  // Per-frame phase driver, called from the tick loop.
+  function updateMemory(s, now) {
+    const t = (now - s.phaseBegan) / 1000;
+    if (s.phase === "ready") {
+      s.remaining = Math.max(0, s.readyFor - t);
+      const el = document.querySelector("#countdown");
+      const n = String(Math.max(1, Math.ceil(s.remaining / (s.readyFor / 3))));
+      if (el && el.textContent !== n) {
+        el.textContent = n;
+        el.classList.remove("beat");
+        void el.offsetWidth; // restart the CSS beat animation
+        el.classList.add("beat");
+      }
+      if (s.remaining <= 0) {
+        s.phase = "study";
+        s.phaseBegan = now;
+        s.remaining = s.studiedFor;
+        app.refresh();
+      }
+    } else if (s.phase === "study") {
+      s.remaining = Math.max(0, s.studiedFor - t);
+      const bar = document.querySelector("#study-bar");
+      if (bar) {
+        bar.style.width = (100 * s.remaining) / s.studiedFor + "%";
+        bar.classList.toggle("caution", s.remaining <= 2);
+      }
+      if (s.remaining <= 0) {
+        s.phase = "recall";
+        s.phaseBegan = now;
+        s.remaining = 0;
+        app.refresh();
+      }
+    } else if (s.phase === "recall") {
+      s.remaining = t;
+    } else if (s.phase === "feedback") {
+      const bar = document.querySelector("#review-bar");
+      if (bar) bar.style.width = Math.min(100, (100 * t) / MEMORY_REVIEW) + "%";
+      if (t >= MEMORY_REVIEW) advanceMemory(s);
+    }
   }
 
   function submitMemory(form) {
@@ -133,19 +306,42 @@ window.AVAssess = (() => {
     if (!s || s.module !== "memory" || s.phase !== "recall") return;
 
     const data = new FormData(form);
+    const answers = {};
+    const marks = {};
     let right = 0;
     for (const k of s.targets) {
-      if (gradeFlight(k, data.get(k), s.values[k])) right++;
+      answers[k] = String(data.get(k) ?? "").trim();
+      marks[k] = gradeFlight(k, answers[k], s.values[k]);
+      if (marks[k]) right++;
     }
+    const seconds = (performance.now() - s.phaseBegan) / 1000;
     s.roundCorrect += right;
     s.roundTotal += s.targets.length;
-    s.seconds.push((performance.now() - s.phaseBegan) / 1000);
-    s.index++;
+    s.seconds.push(seconds);
+    s.rounds.push({
+      level: s.level,
+      targets: s.targets.slice(),
+      values: { ...s.values },
+      answers,
+      marks,
+      right,
+      seconds,
+    });
 
+    s.phase = "feedback";
+    s.phaseBegan = performance.now();
+    s.remaining = seconds;
+    app.refresh();
+  }
+
+  // Leaves the feedback phase: next round, or finish with the unchanged scoring rule.
+  function advanceMemory(s = state.session) {
+    if (!s || s.module !== "memory" || s.phase !== "feedback") return;
+    s.index++;
     if (s.index >= s.total) {
       const avg = s.seconds.reduce((a, b) => a + b, 0) / s.seconds.length;
       app.finish(
-        gradeSpeed(s.roundCorrect, s.roundTotal, avg, 22),
+        gradeSpeed(s.roundCorrect, s.roundTotal, avg, MEMORY_RECALL_REF),
         `${s.roundCorrect} of ${s.roundTotal} readings correct. Average recall time ${avg.toFixed(1)} s.`,
       );
     } else {
@@ -155,21 +351,18 @@ window.AVAssess = (() => {
   }
 
   function randomMemoryRound(s) {
-    let difficulty = s.difficulty;
-    if (s.mode === "assessment") {
-      const steps = ["easy", "medium", "medium", "hard", "hard"];
-      difficulty = steps[s.index] || "hard";
-    }
-    const toHide = { easy: 1, medium: 2, hard: 4 }[difficulty];
-    const fields = ["altitude", "speed", "heading", "radio"];
-    s.targets = fields
-      .slice()
+    const level =
+      s.mode === "assessment" ? MEMORY_RAMP[s.index] || "hard" : s.difficulty;
+    s.level = MEMORY_LEVELS[level] ? level : "easy";
+    const { study, hide } = MEMORY_LEVELS[s.level];
+    s.targets = Object.keys(MEMORY_FIELDS)
       .sort(() => Math.random() - 0.5)
-      .slice(0, toHide);
+      .slice(0, hide);
     s.values = randomFlight();
-    s.phase = "study";
-    s.studiedFor = { easy: 8, medium: 6, hard: 5 }[difficulty];
-    s.remaining = s.studiedFor;
+    s.studiedFor = study;
+    s.readyFor = MEMORY_READY;
+    s.remaining = s.readyFor;
+    s.phase = "ready";
     s.phaseBegan = performance.now();
   }
 
@@ -186,14 +379,118 @@ window.AVAssess = (() => {
     const raw = String(input ?? "")
       .replace(/[,\s]/g, "")
       .toLowerCase();
+    // Strip a unit first, then a single ident letter, so "240kts" is not read as "240kt".
     const clean = raw
-      .replace(/[asrh]$/, "")
-      .replace(/(?:ft|kts|deg|mhz|°)$/, "");
+      .replace(/(?:ft|kts|kt|deg|mhz|°)$/, "")
+      .replace(/[asrh]$/, "");
     return (
       clean !== "" &&
       Number.isFinite(Number(clean)) &&
       Number(clean) === Number(expected)
     );
+  }
+
+  // ---- keyboard navigation (recall) ----
+
+  // ← / →: move to the previous / next concealed box (stops at either end).
+  function memoryStep(input, dir) {
+    const fields = Array.from(
+      document.querySelectorAll("[data-memory-field]"),
+    );
+    const next = fields[fields.indexOf(input) + dir];
+    if (!next) return;
+    next.focus();
+    next.setSelectionRange(next.value.length, next.value.length);
+  }
+
+  // Brings focus back to the first empty box (or the first box) when it has drifted away.
+  function memoryFocus() {
+    const fields = Array.from(
+      document.querySelectorAll("[data-memory-field]"),
+    );
+    (fields.find((f) => f.value.trim() === "") || fields[0])?.focus();
+  }
+
+  // Enter: jump to the next empty concealed box; submit once all are filled.
+  function memoryEnter(input) {
+    const fields = Array.from(
+      document.querySelectorAll("[data-memory-field]"),
+    );
+    const at = fields.indexOf(input);
+    const ordered = fields.slice(at + 1).concat(fields.slice(0, at + 1));
+    const empty = ordered.find((f) => f.value.trim() === "");
+    if (empty && empty !== input) empty.focus();
+    else document.querySelector("#memory-answer")?.requestSubmit();
+  }
+
+  // ---- results breakdown (complete screen) ----
+
+  function renderBreakdown(s) {
+    if (s.module !== "memory" || !s.rounds?.length) return "";
+    const avg = s.seconds.reduce((a, b) => a + b, 0) / s.seconds.length;
+
+    const rows = s.rounds
+      .map(
+        (r, i) => `<tr>
+        <td>${i + 1}</td>
+        <td>${MEMORY_LEVELS[r.level].label}</td>
+        <td><div class="chip-row">${r.targets
+          .map(
+            (k) =>
+              `<span class="param-chip ${r.marks[k] ? "ok" : "miss"}">${MEMORY_FIELDS[k].code} ${r.marks[k] ? "✓" : "✗"}</span>`,
+          )
+          .join("")}</div></td>
+        <td><strong>${r.right} / ${r.targets.length}</strong></td>
+        <td>${r.seconds.toFixed(1)} s</td>
+      </tr>`,
+      )
+      .join("");
+
+    const params = Object.keys(MEMORY_FIELDS)
+      .map((k) => {
+        const asked = s.rounds.filter((r) => r.targets.includes(k));
+        const hit = asked.filter((r) => r.marks[k]).length;
+        const pct = asked.length ? Math.round((100 * hit) / asked.length) : null;
+        const tone = pct === null ? "" : pct >= 60 ? "ok" : "miss";
+        return `<div class="param-bar">
+          <span class="param-code">${MEMORY_FIELDS[k].code}</span>
+          <div class="param-track"><div class="param-fill ${tone}" style="width:${pct ?? 0}%"></div></div>
+          <span class="param-val">${pct === null ? "not asked" : `${hit} / ${asked.length}`}</span>
+        </div>`;
+      })
+      .join("");
+
+    const speed = clamp(avg / MEMORY_RECALL_REF, 0, 1);
+    return `<div class="result-stats">
+      ${resultStat("Readings correct", `${s.roundCorrect} / ${s.roundTotal}`, `${Math.round((100 * s.roundCorrect) / s.roundTotal)}% accuracy · 85% of score`)}
+      ${resultStat("Average recall", `${avg.toFixed(1)} s`, `${MEMORY_RECALL_REF} s reference · 15% of score`)}
+      ${resultStat("Rounds", s.rounds.length, s.mode === "assessment" ? "Easy → hard ramp" : `${MEMORY_LEVELS[s.level].label} level`)}
+    </div>
+    <div class="result-grid">
+      <section class="result-card">
+        <h3 class="result-card-title">Round by round</h3>
+        <div class="table-wrap">
+          <table class="data-table ins-table">
+            <thead><tr><th>#</th><th>Level</th><th>Concealed</th><th>Correct</th><th>Time</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </section>
+      <section class="result-card">
+        <h3 class="result-card-title">Accuracy by parameter</h3>
+        ${params}
+        <h3 class="result-card-title" style="margin-top:18px">Recall speed</h3>
+        <div class="param-bar">
+          <span class="param-code">AVG</span>
+          <div class="param-track"><div class="param-fill ${speed < 0.5 ? "ok" : "miss"}" style="width:${(100 * speed).toFixed(0)}%"></div></div>
+          <span class="param-val">${avg.toFixed(1)} / ${MEMORY_RECALL_REF} s</span>
+        </div>
+      </section>
+    </div>`;
+  }
+
+  function resultStat(title, value, note) {
+    return `<div class="result-stat"><span>${escapeHtml(title)}</span><strong>${escapeHtml(String(value))}</strong><small>${escapeHtml(note)}</small></div>`;
   }
 
   // ============================================================
@@ -971,8 +1268,16 @@ window.AVAssess = (() => {
 
   return {
     renderAssessment,
+    renderBreakdown,
+    syncHud,
+    updateMemory,
     submitMemory,
+    advanceMemory,
     randomMemoryRound,
+    memoryStep,
+    memoryFocus,
+    memoryEnter,
+    gradeFlight,
     controlView,
     updateControl,
     drawControl,
