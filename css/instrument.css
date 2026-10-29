@@ -1,40 +1,60 @@
 /* ============================================================
-   AeroVector instrument design system  (css/instrument.css)
+   AeroVector design system  (css/instrument.css)
 
-   The single source of truth for how a TEST looks: the test header,
-   instrument panels, readouts, data entry, review states, briefing
-   and results. Loaded after main.css (see index.html).
+   The single source of truth for colour, shape and controls across the
+   whole app, and for how a TEST looks: test header, instrument panels,
+   readouts, data entry, review states, briefing and results. Loaded
+   after main.css (see index.html); main.css builds the app pages from
+   the same --ins-* tokens.
+
+   Tokens (see "Design tokens" below; dark default, light override)
+   - Neutrals   --ins-page / bg / surface / raised, --ins-line(-strong),
+                --ins-text / dim / faint  (navy-tinted, never pure grey)
+   - Brand      --ins-primary (text, lines, selection, focus),
+                --ins-primary-fill(-hover) + --ins-on-primary (filled
+                buttons), --ins-primary-soft / -line (selected states)
+   - Status     --ins-ok / bad / caution, each with a -soft tint
+   - Chrome     --ins-chrome* — the navy glareshield header (both themes)
+   - Shape      --ins-radius-xs 3 / -sm 6 / (base) 10 / -lg 14 px
+   - Controls   --ins-ctl-sm 32 / --ins-ctl 40 / --ins-ctl-lg 48 px
 
    Principles
-   - Restraint: neutral greys + ONE accent (--ins-accent). Green/red
-     (--ins-ok / --ins-bad) only for correct/wrong marks, never decoration.
-   - One palette for the whole app, in dark and light (data-theme on
-     <html>). main.css builds the app pages from the same --ins-* tokens.
-   - Aviation cues stay quiet: avionics-style tracked labels, mono
-     readouts, a faint chart graticule behind the page, UTC (Zulu) clock,
-     port red / starboard green, amber only for caution.
-   - Hairlines, not boxes: separate with 1px --ins-line; no glows,
-     gradients or scanlines. Numbers in mono, tabular, weight 500.
-   - Keyboard first: show keys with <kbd>; the active input gets the accent.
-   - Motion is short and functional (insIn, cellIn, beat) and is
-     switched off by the prefers-reduced-motion rule in main.css.
+   - Aerospace, not decoration: navy neutrals, one aviation-blue brand
+     colour, precise panel-like corners (no soft pills), uppercase
+     tracked labels on buttons like cockpit switch labels.
+   - Colour carries meaning: blue = action / active / selected; green =
+     correct / pass; red = wrong / warning (port); amber = caution /
+     hazard / needs practice. Soft tints back chips and selected states.
+   - Structure with contrast: navy header bar, blue status edge on test
+     headers and results, tinted panel bars, hairline dividers inside.
+   - Never hard-code a colour. CSS uses var(--ins-*); SVG drawings in
+     ui.js use the .pv-* / .chart-* classes; canvases read the tokens
+     through palette() in assessment.js.
+   - Aviation cues stay quiet: mono readouts, a faint chart graticule
+     behind the page, UTC (Zulu) clock, port red / starboard green.
+   - Keyboard first: show keys with <kbd>; the active input gets the
+     brand colour. Motion is short (insIn, cellIn, beat) and switched off
+     by prefers-reduced-motion in main.css.
 
    Components (compose these; add module-specific CSS only when needed)
    .ins-test            wrapper renderAssessment() puts around every test view
    .ins-head            test header: meta / title / progress / clock / actions
-   .ins-panel           dark instrument panel (any block of test content)
-     .ins-panel-head    top bar: .ins-phase (+ .is-input) and .ins-panel-meta
+   .ins-panel           instrument panel (any block of test content)
+     .ins-panel-head    tinted top bar: .ins-phase (+ .is-input) and .ins-panel-meta
      .ins-strip         row of .ins-cell readouts divided by hairlines
        .ins-cell        states: is-live, is-dim, is-blank, is-input, is-ok, is-miss
          .ins-cell-top  code label + .ins-ident
          .ins-readout   .ins-value / .ins-input + .ins-unit
          .ins-cell-foot caption, or .ins-verdict in review
-     .ins-line          hairline progress (.ins-line-fill + .caution / .review)
+     .ins-line          progress line (.ins-line-fill + .caution / .review)
      .ins-foot          footer row: .ins-note / .ins-keys + .ins-btn
      .ins-countdown     overlay with .ins-countdown-label / -num
-   .ins-btn             primary action (light on dark); .ins-head-btn = quiet
+   .ins-btn             filled primary action; .ins-head-btn = quiet outline
    .ins-ring            progress ring from AVUI.ring() (timer, score)
-   Shell screens: .briefing*, .seg, .ramp, .bottom-bar, .result-*
+   App pages (main.css): .btn (.primary / .secondary / .quiet / .lg),
+   .field, .panel, .metric, .module-card, .data-table, .result-status,
+   .mode-option, .keycaps, .toast. Shell screens: .briefing*, .seg,
+   .ramp, .bottom-bar, .result-*.
 
    Existing module markup (.panel, .info-row, .field, .btn, …) is mapped
    onto these tokens in the "Module adapters" section at the end, so
@@ -52,28 +72,51 @@
   initial-value: 0;
 }
 
-/* ---------- Theme palette (whole application) ----------
+/* ---------- Design tokens (whole application) ----------
+   Aerospace palette: navy-tinted neutrals (night cockpit / sky haze),
+   one aviation-blue brand colour, and status colours with soft tints.
    Dark is the default (state.theme defaults to "dark"); light overrides
    below. main.css reads the same tokens, so pages and tests share one
-   palette. Contrast ratios are against --ins-bg. */
+   system. Contrast ratios are against --ins-bg. */
 :root {
   color-scheme: dark;
 
-  /* Colour */
-  --ins-page: #080b0e; /* page background behind panels */
-  --ins-grid: rgba(255, 255, 255, 0.035); /* faint chart graticule on the page */
-  --ins-bg: #0c1014; /* instrument face, panels */
-  --ins-surface: #11161b; /* header, cards, raised surfaces */
-  --ins-raised: #171d23; /* hover / selected / table head */
-  --ins-line: rgba(255, 255, 255, 0.07); /* hairline divider */
-  --ins-line-strong: rgba(255, 255, 255, 0.13); /* borders, inactive tracks */
-  --ins-text: #eef2f5; /* data + primary text, 17:1 */
-  --ins-dim: #9fabb6; /* labels, secondary text, 8.2:1 */
-  --ins-faint: #66727d; /* placeholders, idents, 3.9:1 */
-  --ins-accent: #6cb8ff; /* the one accent: active input, focus, timer caution */
-  --ins-ok: #5cc28e; /* correct marks, starboard (green) */
-  --ins-bad: #ef7a6f; /* wrong marks, warnings, port (red) */
-  --ins-caution: #e8b04f; /* hazards + "needs practice" only */
+  /* Neutrals: night-cockpit navy */
+  --ins-page: #060c15; /* page background behind panels */
+  --ins-grid: rgba(140, 180, 230, 0.06); /* faint chart graticule on the page */
+  --ins-bg: #0b1522; /* instrument face, inputs */
+  --ins-surface: #0f1b2b; /* cards, panels, test header */
+  --ins-raised: #152438; /* panel bars, table heads, hover, previews */
+  --ins-line: rgba(150, 185, 225, 0.11); /* hairline divider */
+  --ins-line-strong: rgba(150, 185, 225, 0.22); /* borders, inactive tracks */
+  --ins-text: #e8f0f9; /* data + primary text, 16.0:1 */
+  --ins-dim: #9fb2c8; /* labels, secondary text, 8.5:1 */
+  --ins-faint: #62788f; /* placeholders, idents, 4.0:1 */
+
+  /* Brand: aviation blue */
+  --ins-primary: #4d9eff; /* 6.7:1 — links, active, selection, focus, lines */
+  --ins-primary-fill: #2b6fd8; /* filled buttons: white text 4.8:1 */
+  --ins-primary-fill-hover: #2563c9;
+  --ins-primary-soft: rgba(77, 158, 255, 0.14); /* selected / tinted fills */
+  --ins-primary-line: rgba(77, 158, 255, 0.45); /* selected borders */
+  --ins-on-primary: #ffffff; /* text on --ins-primary buttons */
+  --ins-accent: var(--ins-primary); /* active input, timer caution (alias) */
+
+  /* Status */
+  --ins-ok: #3fcf8e; /* correct, pass, starboard green */
+  --ins-ok-soft: rgba(63, 207, 142, 0.13);
+  --ins-bad: #ff6b6b; /* wrong, warnings, port red */
+  --ins-bad-soft: rgba(255, 107, 107, 0.13);
+  --ins-caution: #ffb43d; /* hazards + "needs practice" */
+  --ins-caution-soft: rgba(255, 180, 61, 0.13);
+
+  /* Chrome: the glareshield header bar (navy in both themes) */
+  --ins-chrome: #08111d;
+  --ins-chrome-raised: #12223a;
+  --ins-chrome-line: rgba(150, 185, 225, 0.16);
+  --ins-chrome-text: #e8f0f9;
+  --ins-chrome-dim: #93a7bf;
+  --ins-chrome-accent: #4d9eff;
 
   /* Type */
   --ins-font-data: var(--mono);
@@ -83,37 +126,65 @@
   --ins-fs-readout: clamp(28px, 3.2vw, 46px); /* primary instrument numbers */
   --ins-fs-data: 20px; /* secondary numbers (rows, cards) */
   --ins-track-label: 0.14em;
+  --ins-track-button: 0.08em; /* switch-label style on buttons */
 
-  /* Shape + space */
-  --ins-radius: 16px;
-  --ins-radius-sm: 10px;
+  /* Shape: precise, panel-like corners (no soft pills) */
+  --ins-radius-xs: 3px; /* tags, annunciators, pips, kbd */
+  --ins-radius-sm: 6px; /* buttons, inputs, chips */
+  --ins-radius: 10px; /* cards, panels */
+  --ins-radius-lg: 14px; /* hero, welcome, briefing, results */
+
+  /* Controls */
+  --ins-ctl-sm: 32px;
+  --ins-ctl: 40px;
+  --ins-ctl-lg: 48px;
+
+  /* Space */
   --ins-pad: 24px;
   --ins-gap: 14px;
 
   /* Depth + motion */
-  --ins-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.6);
+  --ins-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 16px 36px -22px rgba(0, 0, 0, 0.7);
   --ins-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --ins-page: #eaeef2;
-  --ins-grid: rgba(15, 23, 32, 0.05);
+  /* Neutrals: sky haze */
+  --ins-page: #e6edf5;
+  --ins-grid: rgba(16, 42, 74, 0.06);
   --ins-bg: #ffffff;
   --ins-surface: #ffffff;
-  --ins-raised: #f2f5f8;
-  --ins-line: rgba(15, 23, 32, 0.09);
-  --ins-line-strong: rgba(15, 23, 32, 0.18);
-  --ins-text: #0f1720; /* 18:1 */
-  --ins-dim: #4f5b66; /* 7.0:1 */
-  --ins-faint: #7d8893; /* 3.6:1 */
-  --ins-accent: #1d6ad0; /* 5.2:1 */
-  --ins-ok: #19804f; /* 5.0:1 */
-  --ins-bad: #c23c30; /* 5.3:1 */
-  --ins-caution: #95600a; /* 5.3:1 */
-  --ins-shadow:
-    0 1px 2px rgba(15, 23, 32, 0.05), 0 14px 32px -20px rgba(15, 23, 32, 0.22);
+  --ins-raised: #eef3f9;
+  --ins-line: rgba(16, 42, 74, 0.1);
+  --ins-line-strong: rgba(16, 42, 74, 0.2);
+  --ins-text: #0b1b2e; /* 17.3:1 */
+  --ins-dim: #48596e; /* 7.2:1 */
+  --ins-faint: #7b8ca1; /* 3.4:1 */
+
+  --ins-primary: #1558c0; /* 6.6:1 */
+  --ins-primary-fill: #1558c0; /* white text 6.6:1 */
+  --ins-primary-fill-hover: #0f469c;
+  --ins-primary-soft: #e6effc;
+  --ins-primary-line: rgba(21, 88, 192, 0.45);
+  --ins-on-primary: #ffffff;
+
+  --ins-ok: #10804e; /* 5.0:1 */
+  --ins-ok-soft: #e3f4ec;
+  --ins-bad: #c4312a; /* 5.5:1 */
+  --ins-bad-soft: #fbe9e8;
+  --ins-caution: #955b00; /* 5.6:1 */
+  --ins-caution-soft: #fbf0dc;
+
+  --ins-chrome: #0b1a2e;
+  --ins-chrome-raised: #15294a;
+  --ins-chrome-line: rgba(150, 185, 225, 0.18);
+  --ins-chrome-text: #eef4fb;
+  --ins-chrome-dim: #9fb3cb;
+  --ins-chrome-accent: #5aa6ff;
+
+  --ins-shadow: 0 1px 2px rgba(16, 42, 74, 0.06), 0 12px 28px -18px rgba(16, 42, 74, 0.28);
 }
 
 .sr-only {
@@ -138,7 +209,8 @@ kbd {
   line-height: 1.5;
   text-align: center;
   border: 1px solid currentColor;
-  border-radius: 5px;
+  border-bottom-width: 2px;
+  border-radius: var(--ins-radius-xs);
   opacity: 0.85;
 }
 
@@ -154,6 +226,7 @@ kbd {
   color: var(--ins-text);
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
+  border-top: 3px solid var(--ins-primary);
   border-radius: var(--ins-radius);
   box-shadow: var(--ins-shadow);
   animation: insIn 0.4s var(--ins-ease) both;
@@ -175,6 +248,9 @@ kbd {
   content: "/";
   margin: 0 10px;
   color: var(--ins-faint);
+}
+.ins-head-meta span:first-child {
+  color: var(--ins-primary);
 }
 .ins-head-id h1 {
   margin: 6px 0 2px;
@@ -207,16 +283,16 @@ kbd {
 }
 .ins-pip {
   flex: 1;
-  height: 3px;
-  border-radius: 2px;
+  height: 4px;
+  border-radius: var(--ins-radius-xs);
   background: var(--ins-line-strong);
   transition: background 0.3s;
 }
 .ins-pip.done {
-  background: var(--ins-dim);
+  background: color-mix(in srgb, var(--ins-primary) 45%, var(--ins-line-strong));
 }
 .ins-pip.current {
-  background: var(--ins-text);
+  background: var(--ins-primary);
 }
 
 .ins-clock {
@@ -251,27 +327,29 @@ kbd {
   border-left: 1px solid var(--ins-line);
 }
 .ins-head-btn {
-  height: 30px;
+  height: var(--ins-ctl-sm);
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: var(--ins-radius-sm);
   border: 1px solid var(--ins-line-strong);
   background: transparent;
   color: var(--ins-dim);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: var(--ins-track-button);
+  text-transform: uppercase;
   transition:
     color 0.15s,
     border-color 0.15s;
 }
 .ins-head-btn:hover {
-  color: var(--ins-text);
-  border-color: var(--ins-dim);
+  color: var(--ins-primary);
+  border-color: var(--ins-primary-line);
 }
 
 /* ---------- Progress ring (timer + score) ---------- */
 
 .ins-ring {
-  --ring: var(--ins-text);
+  --ring: var(--ins-primary);
   position: relative;
   flex: none;
 }
@@ -299,7 +377,7 @@ kbd {
   place-items: center;
 }
 .ins-ring.caution {
-  --ring: var(--ins-accent);
+  --ring: var(--ins-caution);
 }
 
 /* ---------- Memory: instrument strip ---------- */
@@ -318,13 +396,14 @@ kbd {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 24px;
-  border-bottom: 1px solid var(--ins-line);
+  padding: 13px 24px;
   font-size: var(--ins-fs-label);
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ins-dim);
+  background: var(--ins-raised);
+  border-bottom: 1px solid var(--ins-line);
 }
 .ins-phase {
   display: inline-flex;
@@ -335,11 +414,13 @@ kbd {
 .ins-phase::before {
   content: "";
   width: 14px;
-  height: 2px;
-  background: var(--ins-text);
+  height: 3px;
+  background: var(--ins-primary);
+  border-radius: 1px;
 }
 .ins-phase.is-input::before {
-  background: var(--ins-accent);
+  background: var(--ins-primary);
+  box-shadow: 0 0 0 3px var(--ins-primary-soft);
 }
 
 .ins-strip {
@@ -429,13 +510,13 @@ kbd {
 
 .ins-cell.is-input {
   cursor: text;
-  background: color-mix(in srgb, var(--ins-text) 3%, transparent);
+  background: color-mix(in srgb, var(--ins-primary) 4%, transparent);
 }
 .ins-cell.is-input .ins-readout {
   border-bottom-color: var(--ins-line-strong);
 }
 .ins-cell.is-input:focus-within {
-  background: color-mix(in srgb, var(--ins-text) 5%, transparent);
+  background: var(--ins-primary-soft);
 }
 .ins-cell.is-input:focus-within .ins-readout {
   border-bottom-color: var(--ins-accent);
@@ -482,16 +563,16 @@ kbd {
 }
 
 .ins-line {
-  height: 2px;
+  height: 3px;
   background: var(--ins-line);
 }
 .ins-line-fill {
   height: 100%;
-  background: var(--ins-text);
+  background: var(--ins-primary);
   transition: background 0.3s;
 }
 .ins-line-fill.caution {
-  background: var(--ins-accent);
+  background: var(--ins-caution);
 }
 .ins-line-fill.review {
   background: var(--ins-faint);
@@ -534,22 +615,25 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  height: 38px;
-  padding: 0 8px 0 16px;
-  border: 0;
-  border-radius: 10px;
-  background: var(--ins-text);
-  color: var(--ins-bg);
-  font-size: 13px;
-  font-weight: 600;
+  height: var(--ins-ctl);
+  padding: 0 8px 0 18px;
+  border: 1px solid var(--ins-primary-fill);
+  border-radius: var(--ins-radius-sm);
+  background: var(--ins-primary-fill);
+  color: var(--ins-on-primary);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: var(--ins-track-button);
+  text-transform: uppercase;
   transition: background 0.15s;
 }
 .ins-btn:hover {
-  background: color-mix(in srgb, var(--ins-text) 86%, var(--ins-bg));
+  background: var(--ins-primary-fill-hover);
 }
 .ins-btn kbd {
-  border-color: color-mix(in srgb, var(--ins-bg) 45%, transparent);
-  opacity: 0.8;
+  text-transform: none;
+  border-color: color-mix(in srgb, var(--ins-on-primary) 45%, transparent);
+  opacity: 0.85;
 }
 
 .ins-countdown {
@@ -564,10 +648,10 @@ kbd {
 }
 .ins-countdown-label {
   font-size: var(--ins-fs-label);
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--ins-dim);
+  color: var(--ins-primary);
 }
 .ins-countdown-num {
   font-family: var(--mono);
@@ -624,7 +708,7 @@ kbd {
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 18px;
+  border-radius: var(--ins-radius-lg);
   overflow: hidden;
   box-shadow: var(--ins-shadow);
   animation: insIn 0.4s var(--ins-ease) both;
@@ -640,7 +724,7 @@ kbd {
 }
 .cockpit-display {
   padding: 6px;
-  border-radius: 18px;
+  border-radius: var(--ins-radius-lg);
   background: var(--ins-surface);
   border: 1px solid var(--ins-line);
   box-shadow: var(--ins-shadow);
@@ -651,7 +735,7 @@ kbd {
   place-items: center;
   min-height: 240px;
   padding: 20px;
-  border-radius: 13px;
+  border-radius: var(--ins-radius);
   overflow: hidden;
   color: var(--ins-text);
   background: var(--ins-bg);
@@ -664,7 +748,7 @@ kbd {
 }
 .cockpit-display-screen .is-preview {
   border: 1px solid var(--ins-line);
-  border-radius: 10px;
+  border-radius: var(--ins-radius);
 }
 .cockpit-display-caption {
   display: flex;
@@ -687,7 +771,7 @@ kbd {
   padding: 10px 12px;
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 12px;
+  border-radius: var(--ins-radius);
 }
 .briefing-specs dt {
   font-size: 10px;
@@ -738,12 +822,12 @@ kbd {
   content: counter(step, decimal-leading-zero);
   font-family: var(--mono);
   font-size: 11px;
-  font-weight: 600;
-  color: var(--ins-dim);
+  font-weight: 650;
+  color: var(--ins-primary);
 }
 .briefing-steps code {
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: var(--ins-radius-xs);
   font-family: var(--mono);
   font-size: 12px;
   color: var(--ins-text);
@@ -758,7 +842,7 @@ kbd {
   padding: 4px;
   background: var(--ins-raised);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 12px;
+  border-radius: var(--ins-radius);
 }
 .seg-opt {
   position: relative;
@@ -774,7 +858,7 @@ kbd {
 .seg-opt span {
   display: block;
   padding: 9px 8px;
-  border-radius: 9px;
+  border-radius: var(--ins-radius-sm);
   text-align: center;
   transition:
     background 0.18s,
@@ -790,10 +874,9 @@ kbd {
   color: var(--ins-dim);
 }
 .seg-opt input:checked + span {
-  background: var(--ins-surface);
-  box-shadow:
-    0 0 0 1px var(--ins-faint),
-    var(--ins-shadow);
+  color: var(--ins-primary);
+  background: var(--ins-primary-soft);
+  box-shadow: 0 0 0 1px var(--ins-primary);
 }
 .seg-opt input:focus-visible + span {
   outline: 2px solid var(--ins-accent);
@@ -810,11 +893,11 @@ kbd {
   padding: 8px 6px;
   text-align: center;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 650;
   background: var(--ins-raised);
-  border: 1px solid var(--ins-line-strong);
-  border-top: 2px solid var(--ins-faint);
-  border-radius: 10px;
+  border: 1px solid var(--ins-line);
+  border-top: 3px solid color-mix(in srgb, var(--ins-primary) 35%, transparent);
+  border-radius: var(--ins-radius-sm);
 }
 .ramp-step small {
   display: block;
@@ -823,10 +906,10 @@ kbd {
   color: var(--ins-dim);
 }
 .ramp-step.medium {
-  border-top-color: var(--ins-dim);
+  border-top-color: color-mix(in srgb, var(--ins-primary) 65%, transparent);
 }
 .ramp-step.hard {
-  border-top-color: var(--ins-text);
+  border-top-color: var(--ins-primary);
 }
 
 /* Start bar: pinned while scrolling */
@@ -839,7 +922,7 @@ kbd {
   padding: 10px 10px 10px 22px;
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 14px;
+  border-radius: var(--ins-radius);
   box-shadow: var(--ins-shadow);
 }
 .bottom-bar-text {
@@ -851,16 +934,16 @@ kbd {
   text-transform: none;
 }
 .bottom-bar .btn {
-  min-height: 40px;
-  padding: 0 20px;
-  color: var(--ins-bg);
-  background: var(--ins-text);
-  border-color: transparent;
-  box-shadow: none;
-  letter-spacing: 0.04em;
+  min-height: var(--ins-ctl);
+  padding: 0 22px;
+  color: var(--ins-on-primary);
+  background: var(--ins-primary-fill);
+  border-color: var(--ins-primary-fill);
 }
 .bottom-bar .btn:hover {
-  background: color-mix(in srgb, var(--ins-text) 86%, var(--ins-bg));
+  color: var(--ins-on-primary);
+  background: var(--ins-primary-fill-hover);
+  border-color: var(--ins-primary-fill-hover);
 }
 
 /* ---------- Results (complete screen) ---------- */
@@ -874,13 +957,13 @@ kbd {
   color: var(--ins-text);
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 18px;
+  border-top: 3px solid var(--ins-primary);
+  border-radius: var(--ins-radius-lg);
   box-shadow: var(--ins-shadow);
   animation: insIn 0.45s var(--ins-ease) both;
 }
 .result-hero .eyebrow {
-  font-weight: 600;
-  color: var(--ins-dim);
+  color: var(--ins-primary);
 }
 .result-hero h1 {
   margin: 6px 0 12px;
@@ -919,14 +1002,14 @@ kbd {
   color: var(--ins-text);
   border-color: var(--ins-line-strong);
 }
-.result-hero .btn.primary {
-  color: var(--ins-bg);
-  background: var(--ins-text);
-  border-color: transparent;
-  box-shadow: none;
-}
 .score-ring {
   animation: ringFill 1.1s var(--ins-ease) both;
+}
+.result-hero.pass .score-ring {
+  --ring: var(--ins-ok);
+}
+.result-hero.fail .score-ring {
+  --ring: var(--ins-caution);
 }
 .score-ring .ins-ring-inner {
   display: flex;
@@ -962,10 +1045,11 @@ kbd {
   margin: 14px 0;
 }
 .result-stat {
-  padding: 16px 18px;
+  position: relative;
+  padding: 18px 18px 16px;
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 14px;
+  border-radius: var(--ins-radius);
   animation: fadeInUp 0.4s ease both;
 }
 .result-stat span {
@@ -998,7 +1082,7 @@ kbd {
   padding: 18px 20px;
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 14px;
+  border-radius: var(--ins-radius);
   animation: fadeInUp 0.45s ease both;
 }
 .result-card-title {
@@ -1023,9 +1107,9 @@ kbd {
 .param-chip {
   font-family: var(--mono);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: 0.06em;
-  color: var(--ins-dim);
+  color: var(--ins-ok);
 }
 .param-chip.miss {
   color: var(--ins-bad);
@@ -1044,15 +1128,15 @@ kbd {
   color: var(--ins-dim);
 }
 .param-track {
-  height: 4px;
-  border-radius: 2px;
+  height: 6px;
+  border-radius: var(--ins-radius-xs);
   background: var(--ins-raised);
   overflow: hidden;
 }
 .param-fill {
   height: 100%;
   border-radius: inherit;
-  background: var(--ins-text);
+  background: var(--ins-primary);
   transform-origin: left;
   animation: barGrow 0.9s var(--ins-ease) both;
 }
@@ -1256,17 +1340,17 @@ kbd {
   color: var(--ins-dim);
   background: transparent;
   border: 1px solid var(--ins-line-strong);
-  border-radius: 8px;
+  border-radius: var(--ins-radius-sm);
 }
 .ins-test .status-line.good {
   color: var(--ins-ok);
-  background: transparent;
+  background: var(--ins-ok-soft);
   border-color: color-mix(in srgb, var(--ins-ok) 40%, transparent);
 }
 .ins-test .status-line.warn {
-  color: var(--ins-bad);
-  background: transparent;
-  border-color: color-mix(in srgb, var(--ins-bad) 40%, transparent);
+  color: var(--ins-caution);
+  background: var(--ins-caution-soft);
+  border-color: color-mix(in srgb, var(--ins-caution) 40%, transparent);
 }
 .ins-test .canvas-wrap {
   padding: 0;
@@ -1284,10 +1368,11 @@ kbd {
 .ins-test .keycaps span {
   padding: 3px 8px;
   font-weight: 600;
-  color: var(--ins-dim);
-  background: transparent;
+  color: var(--ins-text);
+  background: var(--ins-raised);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 6px;
+  border-bottom-width: 2px;
+  border-radius: var(--ins-radius-xs);
 }
 
 /* Data entry (Maths, Task Manager) */
@@ -1329,23 +1414,17 @@ kbd {
 /* Buttons */
 .ins-test .btn {
   box-shadow: none;
-  letter-spacing: 0;
 }
 .ins-test .btn:hover {
   transform: none;
   box-shadow: none;
 }
 .ins-test .btn.primary {
-  min-height: 40px;
+  min-height: var(--ins-ctl);
   padding: 0 18px;
-  font-size: var(--ins-fs-body);
-  font-weight: 600;
-  color: var(--ins-bg);
-  background: var(--ins-text);
-  border-color: transparent;
 }
 .ins-test .btn.primary:hover {
-  background: color-mix(in srgb, var(--ins-text) 86%, var(--ins-bg));
+  color: var(--ins-on-primary);
 }
 .ins-test .btn.secondary {
   color: var(--ins-dim);
@@ -1353,8 +1432,8 @@ kbd {
   border-color: var(--ins-line-strong);
 }
 .ins-test .btn.secondary:hover {
-  color: var(--ins-text);
-  border-color: var(--ins-dim);
+  color: var(--ins-primary);
+  border-color: var(--ins-primary-line);
 }
 
 /* Readout rows (Orientation instruments, Task Manager targets) */
@@ -1418,19 +1497,19 @@ kbd {
     background 0.15s;
 }
 .ins-test .aircraft-option:hover {
-  background: var(--ins-raised);
-  border-color: var(--ins-dim);
+  background: var(--ins-primary-soft);
+  border-color: var(--ins-primary-line);
 }
 .ins-test .aircraft-option .num {
   font-family: var(--ins-font-data);
-  font-weight: 600;
-  color: var(--ins-text);
-  background: transparent;
-  border: 1px solid var(--ins-line-strong);
-  border-radius: 6px;
+  font-weight: 650;
+  color: var(--ins-primary);
+  background: var(--ins-primary-soft);
+  border: 1px solid var(--ins-primary-line);
+  border-radius: var(--ins-radius-xs);
 }
 .ins-test .aircraft-option svg {
-  color: var(--ins-text);
+  color: var(--ins-primary);
 }
 .ins-test .aircraft-option span {
   font-size: 12px;
@@ -1453,7 +1532,7 @@ kbd {
   border-radius: var(--ins-radius-sm);
 }
 .ins-test .alert-box.active {
-  color: var(--ins-bg);
+  color: var(--ins-bg); /* dark navy on red (6.6:1) / white on red (5.5:1) */
   background: var(--ins-bad);
   border-color: var(--ins-bad);
   animation: insAlert 1s ease-in-out infinite;
@@ -1603,13 +1682,13 @@ kbd {
 }
 .chart-line {
   fill: none;
-  stroke: var(--ins-text);
-  stroke-width: 2;
+  stroke: var(--ins-primary);
+  stroke-width: 2.5;
   stroke-linejoin: round;
 }
 .chart-dot {
-  fill: var(--ins-bg);
-  stroke: var(--ins-text);
+  fill: var(--ins-surface);
+  stroke: var(--ins-primary);
   stroke-width: 2;
 }
 

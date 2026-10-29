@@ -73,9 +73,9 @@ canvas:focus-visible {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: color-mix(in srgb, var(--ins-surface) 92%, transparent);
-  border-bottom: 1px solid var(--ins-line-strong);
-  backdrop-filter: blur(10px);
+  background: var(--ins-chrome);
+  border-bottom: 1px solid var(--ins-chrome-line);
+  box-shadow: 0 10px 28px -20px rgba(0, 0, 0, 0.8);
 }
 .header-inner {
   display: flex;
@@ -98,7 +98,7 @@ canvas:focus-visible {
   place-items: center;
   width: 32px;
   height: 32px;
-  color: var(--ins-text);
+  color: var(--ins-chrome-accent);
 }
 .brand-mark svg {
   width: 100%;
@@ -109,7 +109,7 @@ canvas:focus-visible {
   font-weight: 700;
   letter-spacing: 0.2em;
   line-height: 1.05;
-  color: var(--ins-text);
+  color: var(--ins-chrome-text);
 }
 .brand-text small {
   display: block;
@@ -118,7 +118,7 @@ canvas:focus-visible {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ins-dim);
+  color: var(--ins-chrome-dim);
 }
 
 .main-nav {
@@ -134,20 +134,26 @@ canvas:focus-visible {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--ins-dim);
+  color: var(--ins-chrome-dim);
   background: transparent;
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   transition:
     color 0.15s,
-    border-color 0.15s;
+    border-color 0.15s,
+    background 0.15s;
 }
 .main-nav button:hover {
-  color: var(--ins-text);
+  color: var(--ins-chrome-text);
 }
 .main-nav button.active {
-  color: var(--ins-text);
-  border-bottom-color: var(--ins-accent);
+  color: var(--ins-chrome-text);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--ins-chrome-accent) 16%, transparent),
+    transparent 75%
+  );
+  border-bottom-color: var(--ins-chrome-accent);
 }
 
 .header-status {
@@ -162,15 +168,16 @@ canvas:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 6px 12px;
+  height: var(--ins-ctl-sm);
+  padding: 0 12px;
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ins-text);
-  background: transparent;
-  border: 1px solid var(--ins-line-strong);
-  border-radius: 999px;
+  color: var(--ins-chrome-text);
+  background: var(--ins-chrome-raised);
+  border: 1px solid var(--ins-chrome-line);
+  border-radius: var(--ins-radius-xs);
 }
 .status-dot {
   width: 6px;
@@ -186,33 +193,45 @@ canvas:focus-visible {
   gap: 7px;
   flex-shrink: 0;
   padding-left: 14px;
-  border-left: 1px solid var(--ins-line-strong);
+  border-left: 1px solid var(--ins-chrome-line);
 }
 .utc-clock span {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
-  color: var(--ins-dim);
+  color: var(--ins-chrome-dim);
 }
 .utc-clock time {
   font-family: var(--mono);
   font-size: 13px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: var(--ins-text);
+  color: var(--ins-chrome-text);
 }
 
 .nav-toggle {
   display: none;
-  padding: 6px 12px;
+  height: var(--ins-ctl-sm);
+  padding: 0 12px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--ins-track-button);
   text-transform: uppercase;
-  color: var(--ins-text);
+  color: var(--ins-chrome-text);
   background: transparent;
-  border: 1px solid var(--ins-line-strong);
-  border-radius: 8px;
+  border: 1px solid var(--ins-chrome-line);
+  border-radius: var(--ins-radius-sm);
+}
+/* Buttons sitting on the navy header (theme toggle) */
+.app-header .btn {
+  min-height: var(--ins-ctl-sm);
+  color: var(--ins-chrome-text);
+  background: transparent;
+  border-color: var(--ins-chrome-line);
+}
+.app-header .btn:hover {
+  color: var(--ins-chrome-text);
+  border-color: var(--ins-chrome-accent);
 }
 
 /* ---------- Main + footer ---------- */
@@ -272,10 +291,10 @@ code {
 .crumb,
 .eyebrow {
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ins-dim);
+  color: var(--ins-primary);
 }
 .crumb {
   margin-bottom: 6px;
@@ -325,6 +344,17 @@ code {
   text-transform: uppercase;
   color: var(--ins-text);
 }
+/* Small blue marker, like an avionics page title */
+.section-head h2::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 11px;
+  margin-right: 10px;
+  vertical-align: -1px;
+  background: var(--ins-primary);
+  border-radius: 1px;
+}
 .section-head span {
   font-size: 11.5px;
   color: var(--ins-dim);
@@ -336,47 +366,51 @@ code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 0 16px;
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  gap: 8px;
+  min-height: var(--ins-ctl);
+  padding: 0 18px;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: var(--ins-track-button);
+  text-transform: uppercase;
   color: var(--ins-text);
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 10px;
+  border-radius: var(--ins-radius-sm);
   transition:
     background 0.15s,
     border-color 0.15s,
     color 0.15s;
 }
 .btn:hover {
-  border-color: var(--ins-dim);
+  color: var(--ins-primary);
+  border-color: var(--ins-primary-line);
 }
 .btn.primary {
-  color: var(--ins-bg);
-  background: var(--ins-text);
-  border-color: transparent;
+  color: var(--ins-on-primary);
+  background: var(--ins-primary-fill);
+  border-color: var(--ins-primary-fill);
 }
 .btn.primary:hover {
-  background: color-mix(in srgb, var(--ins-text) 86%, var(--ins-bg));
+  color: var(--ins-on-primary);
+  background: var(--ins-primary-fill-hover);
+  border-color: var(--ins-primary-fill-hover);
 }
 .btn.secondary {
   background: transparent;
 }
 .btn.quiet {
-  color: var(--ins-accent);
+  color: var(--ins-primary);
   background: transparent;
   border-color: transparent;
 }
 .btn.quiet:hover {
-  background: color-mix(in srgb, var(--ins-accent) 10%, transparent);
+  background: var(--ins-primary-soft);
 }
 .btn.lg {
-  min-height: 42px;
-  padding: 0 22px;
-  font-size: 13.5px;
+  min-height: var(--ins-ctl-lg);
+  padding: 0 24px;
+  font-size: 12.5px;
 }
 
 /* ---------- Panels ---------- */
@@ -395,10 +429,10 @@ code {
   margin: 0 0 6px;
   padding-bottom: 12px;
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ins-dim);
+  color: var(--ins-text);
   border-bottom: 1px solid var(--ins-line);
 }
 
@@ -410,11 +444,24 @@ code {
   gap: 12px;
 }
 .metric {
-  padding: 16px 18px;
+  position: relative;
+  padding: 18px 18px 16px;
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 14px;
+  border-radius: var(--ins-radius);
   box-shadow: var(--ins-shadow);
+}
+/* Status bar on each readout card */
+.metric::before,
+.result-stat::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  width: 28px;
+  height: 3px;
+  background: var(--ins-primary);
+  border-radius: 0 0 2px 2px;
 }
 .metric span {
   display: block;
@@ -448,7 +495,7 @@ code {
   overflow: hidden;
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 18px;
+  border-radius: var(--ins-radius-lg);
   box-shadow: var(--ins-shadow);
 }
 .hero-copy {
@@ -465,7 +512,7 @@ code {
   letter-spacing: -0.025em;
 }
 .hero-copy h2 span {
-  color: var(--ins-dim);
+  color: var(--ins-primary);
 }
 .hero-copy p {
   max-width: 480px;
@@ -482,7 +529,7 @@ code {
   display: grid;
   place-items: center;
   padding: 28px;
-  background: var(--ins-bg);
+  background: var(--ins-raised);
   border-left: 1px solid var(--ins-line);
 }
 .hero-instrument svg {
@@ -518,7 +565,7 @@ code {
   transition: border-color 0.15s;
 }
 .module-card:hover {
-  border-color: var(--ins-dim);
+  border-color: var(--ins-primary-line);
 }
 .module-card-head {
   display: flex;
@@ -540,12 +587,12 @@ code {
   display: inline-block;
   padding: 3px 8px;
   font-size: 9.5px;
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ins-dim);
-  border: 1px solid var(--ins-line-strong);
-  border-radius: 999px;
+  color: var(--ins-primary);
+  background: var(--ins-primary-soft);
+  border-radius: var(--ins-radius-xs);
 }
 .module-preview {
   display: grid;
@@ -553,9 +600,9 @@ code {
   height: 130px;
   overflow: hidden;
   color: var(--ins-text);
-  background: var(--ins-bg);
+  background: var(--ins-raised);
   border: 1px solid var(--ins-line);
-  border-radius: 12px;
+  border-radius: var(--ins-radius-sm);
 }
 .module-preview > * {
   display: block;
@@ -582,15 +629,15 @@ code {
 }
 /* Quiet until the card is hovered, so six cards never shout at once */
 .module-actions .btn.primary {
-  color: var(--ins-text);
+  color: var(--ins-primary);
   background: transparent;
-  border-color: var(--ins-line-strong);
+  border-color: var(--ins-primary-line);
 }
 .module-card:hover .module-actions .btn.primary,
 .module-actions .btn.primary:focus-visible {
-  color: var(--ins-bg);
-  background: var(--ins-text);
-  border-color: transparent;
+  color: var(--ins-on-primary);
+  background: var(--ins-primary-fill);
+  border-color: var(--ins-primary-fill);
 }
 
 /* ---------- Forms ---------- */
@@ -606,13 +653,13 @@ code {
 }
 .field {
   width: 100%;
-  min-height: 42px;
+  min-height: var(--ins-ctl);
   padding: 8px 12px;
   font-size: 13.5px;
   color: var(--ins-text);
   background: var(--ins-bg);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 10px;
+  border-radius: var(--ins-radius-sm);
   transition:
     border-color 0.15s,
     box-shadow 0.15s;
@@ -623,8 +670,8 @@ code {
 .field:focus,
 .field:focus-visible {
   outline: none;
-  border-color: var(--ins-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ins-accent) 22%, transparent);
+  border-color: var(--ins-primary);
+  box-shadow: 0 0 0 3px var(--ins-primary-soft);
 }
 .field::placeholder {
   color: var(--ins-faint);
@@ -680,6 +727,9 @@ code {
 .data-table tr:last-child td {
   border-bottom: 0;
 }
+.data-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--ins-primary) 5%, transparent);
+}
 .data-table td strong {
   font-family: var(--mono);
   font-weight: 500;
@@ -723,18 +773,21 @@ code {
   letter-spacing: 0.1em;
   white-space: nowrap;
   border: 1px solid;
-  border-radius: 6px;
+  border-radius: var(--ins-radius-sm);
 }
 .result-status.pass {
   color: var(--ins-ok);
-  border-color: color-mix(in srgb, var(--ins-ok) 45%, transparent);
+  background: var(--ins-ok-soft);
+  border-color: color-mix(in srgb, var(--ins-ok) 40%, transparent);
 }
 .result-status.fail {
   color: var(--ins-caution);
-  border-color: color-mix(in srgb, var(--ins-caution) 45%, transparent);
+  background: var(--ins-caution-soft);
+  border-color: color-mix(in srgb, var(--ins-caution) 40%, transparent);
 }
 .result-status.practice {
   color: var(--ins-dim);
+  background: var(--ins-raised);
   border-color: var(--ins-line-strong);
 }
 
@@ -749,19 +802,21 @@ code {
   padding: 12px 14px;
   text-align: left;
   color: var(--ins-text);
-  background: transparent;
+  background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 12px;
+  border-radius: var(--ins-radius-sm);
   transition:
     border-color 0.15s,
+    background 0.15s,
     box-shadow 0.15s;
 }
 .mode-option:hover {
-  border-color: var(--ins-dim);
+  border-color: var(--ins-primary-line);
 }
 .mode-option.selected {
-  border-color: var(--ins-text);
-  box-shadow: inset 0 0 0 1px var(--ins-text);
+  background: var(--ins-primary-soft);
+  border-color: var(--ins-primary);
+  box-shadow: inset 0 0 0 1px var(--ins-primary);
 }
 .mode-option b {
   display: block;
@@ -787,8 +842,10 @@ code {
   font-size: 11.5px;
   font-weight: 600;
   color: var(--ins-text);
+  background: var(--ins-raised);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 6px;
+  border-bottom-width: 2px;
+  border-radius: var(--ins-radius-xs);
 }
 
 /* Layout only; colours live in instrument.css */
@@ -944,10 +1001,12 @@ canvas.instrument {
   padding: 12px 16px;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--ins-bg);
-  background: var(--ins-text);
-  border-radius: 10px;
-  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.45);
+  color: var(--ins-chrome-text);
+  background: var(--ins-chrome);
+  border: 1px solid var(--ins-chrome-line);
+  border-left: 3px solid var(--ins-chrome-accent);
+  border-radius: var(--ins-radius-sm);
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* ---------- Welcome (first visit) ---------- */
@@ -960,7 +1019,7 @@ canvas.instrument {
   overflow: hidden;
   background: var(--ins-surface);
   border: 1px solid var(--ins-line-strong);
-  border-radius: 20px;
+  border-radius: var(--ins-radius-lg);
   box-shadow: var(--ins-shadow);
 }
 .welcome-main {
@@ -1018,7 +1077,7 @@ canvas.instrument {
   padding: 28px;
   text-align: center;
   color: var(--ins-text);
-  background: var(--ins-bg);
+  background: var(--ins-raised);
   border-left: 1px solid var(--ins-line);
 }
 .welcome-instrument {
@@ -1102,12 +1161,13 @@ canvas.instrument {
     width: 100%;
     padding: 11px 10px;
     text-align: left;
-    border-bottom: 1px solid var(--ins-line);
-    border-left: 2px solid transparent;
+    border-bottom: 1px solid var(--ins-chrome-line);
+    border-left: 3px solid transparent;
   }
   .main-nav button.active {
-    border-bottom-color: var(--ins-line);
-    border-left-color: var(--ins-accent);
+    background: var(--ins-chrome-raised);
+    border-bottom-color: var(--ins-chrome-line);
+    border-left-color: var(--ins-chrome-accent);
   }
   .header-status {
     order: 4;

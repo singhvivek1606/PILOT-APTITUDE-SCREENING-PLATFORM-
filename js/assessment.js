@@ -627,7 +627,7 @@ window.AVAssess = (() => {
       text: v("--ins-text"),
       dim: v("--ins-dim"),
       faint: v("--ins-faint"),
-      accent: v("--ins-accent"),
+      accent: v("--ins-primary"),
       ok: v("--ins-ok"),
       bad: v("--ins-bad"),
       caution: v("--ins-caution"),
