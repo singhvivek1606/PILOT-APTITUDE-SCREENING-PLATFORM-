@@ -611,14 +611,39 @@ window.AVAssess = (() => {
     }
   }
 
+  // Theme tokens for canvas drawing, re-read whenever data-theme changes.
+  let paletteCache = null;
+  function palette() {
+    const theme = document.documentElement.dataset.theme || "dark";
+    if (paletteCache?.theme === theme) return paletteCache;
+    const css = getComputedStyle(document.documentElement);
+    const v = (name) => css.getPropertyValue(name).trim();
+    paletteCache = {
+      theme,
+      bg: v("--ins-bg"),
+      raised: v("--ins-raised"),
+      line: v("--ins-line"),
+      lineStrong: v("--ins-line-strong"),
+      text: v("--ins-text"),
+      dim: v("--ins-dim"),
+      faint: v("--ins-faint"),
+      accent: v("--ins-accent"),
+      ok: v("--ins-ok"),
+      bad: v("--ins-bad"),
+      caution: v("--ins-caution"),
+    };
+    return paletteCache;
+  }
+
   function drawControl(s) {
     const canvas = document.querySelector("#control-canvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
+    const p = palette();
     const w = canvas.width,
       h = canvas.height;
 
-    ctx.fillStyle = "#e8eef2";
+    ctx.fillStyle = p.bg;
     ctx.fillRect(0, 0, w, h);
 
     // ---- Round dial ----
@@ -626,27 +651,19 @@ window.AVAssess = (() => {
       cy = 190,
       R = 150;
 
-    // Outer metallic ring
-    const ring = ctx.createRadialGradient(
-      cx - 30,
-      cy - 30,
-      R * 0.7,
-      cx,
-      cy,
-      R * 1.08,
-    );
-    ring.addColorStop(0, "#cbd6dd");
-    ring.addColorStop(0.6, "#9aabb6");
-    ring.addColorStop(1, "#6d7e89");
+    // Bezel
     ctx.beginPath();
     ctx.arc(cx, cy, R * 1.06, 0, Math.PI * 2);
-    ctx.fillStyle = ring;
+    ctx.fillStyle = p.raised;
     ctx.fill();
+    ctx.strokeStyle = p.lineStrong;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
     // Face
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, Math.PI * 2);
-    ctx.fillStyle = "#0f1a24";
+    ctx.fillStyle = p.bg;
     ctx.fill();
 
     // Ticks
@@ -657,22 +674,23 @@ window.AVAssess = (() => {
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
       ctx.lineTo(cx + Math.cos(a) * R * 0.98, cy + Math.sin(a) * R * 0.98);
-      ctx.strokeStyle = long ? "#7f9aaa" : "#4a6070";
+      ctx.strokeStyle = long ? p.dim : p.faint;
       ctx.lineWidth = long ? 2 : 1;
       ctx.stroke();
     }
 
-    // Tolerance arc
+    // Tolerance arc + target mark
+    ctx.lineCap = "butt";
+    ctx.globalAlpha = 0.25;
     ctx.beginPath();
     ctx.arc(cx, cy, R * 0.95, -Math.PI / 2 - 0.14, -Math.PI / 2 + 0.14);
-    ctx.strokeStyle = "rgba(217,74,78,0.30)";
+    ctx.strokeStyle = p.bad;
     ctx.lineWidth = 14;
     ctx.stroke();
-
-    // Target mark
+    ctx.globalAlpha = 1;
     ctx.beginPath();
     ctx.arc(cx, cy, R * 0.95, -Math.PI / 2 - 0.09, -Math.PI / 2 + 0.09);
-    ctx.strokeStyle = "#e04848";
+    ctx.strokeStyle = p.bad;
     ctx.lineWidth = 4;
     ctx.stroke();
 
@@ -681,7 +699,7 @@ window.AVAssess = (() => {
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + Math.cos(na) * R * 0.88, cy + Math.sin(na) * R * 0.88);
-    ctx.strokeStyle = "#3fa9e8";
+    ctx.strokeStyle = p.accent;
     ctx.lineWidth = 4;
     ctx.lineCap = "round";
     ctx.stroke();
@@ -689,22 +707,22 @@ window.AVAssess = (() => {
     // Hub
     ctx.beginPath();
     ctx.arc(cx, cy, 9, 0, Math.PI * 2);
-    ctx.fillStyle = "#e0e8ee";
+    ctx.fillStyle = p.bg;
     ctx.fill();
-    ctx.strokeStyle = "#3fa9e8";
+    ctx.strokeStyle = p.accent;
     ctx.lineWidth = 2;
     ctx.stroke();
 
     // Label
-    ctx.fillStyle = "#566a76";
-    ctx.font = 'bold 10px "Segoe UI", Arial, sans-serif';
+    ctx.fillStyle = p.dim;
+    ctx.font = '600 11px "Segoe UI", -apple-system, Arial, sans-serif';
     ctx.textAlign = "center";
     ctx.fillText(
       s.stage === "needle"
         ? "STAGE 1 · ACTIVE NEEDLE  (↑ / ↓)"
         : "STAGE 1 · COMPLETED",
       cx,
-      cy - R - 12,
+      cy - R - 14,
     );
 
     // ---- Rectangle bar ----
@@ -713,9 +731,12 @@ window.AVAssess = (() => {
       by = 400,
       bh = 56;
 
-    ctx.fillStyle = "#8a99a4";
+    ctx.fillStyle = p.raised;
     ctx.fillRect(bx - 10, by - 10, bw + 20, bh + 20);
-    ctx.fillStyle = "#0f1a24";
+    ctx.strokeStyle = p.lineStrong;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx - 10.5, by - 10.5, bw + 21, bh + 21);
+    ctx.fillStyle = p.bg;
     ctx.fillRect(bx, by, bw, bh);
 
     for (let i = 0; i <= 20; i++) {
@@ -724,44 +745,49 @@ window.AVAssess = (() => {
       ctx.beginPath();
       ctx.moveTo(tx, by + bh - 4);
       ctx.lineTo(tx, by + bh - (tall ? 16 : 8));
-      ctx.strokeStyle = tall ? "#7f9aaa" : "#4a6070";
+      ctx.strokeStyle = tall ? p.dim : p.faint;
       ctx.lineWidth = tall ? 2 : 1;
       ctx.stroke();
     }
 
     const centreX = bx + bw / 2;
+    ctx.lineCap = "butt";
+    ctx.globalAlpha = 0.25;
     ctx.beginPath();
     ctx.moveTo(centreX, by);
     ctx.lineTo(centreX, by + bh);
-    ctx.strokeStyle = "rgba(217,74,78,0.30)";
+    ctx.strokeStyle = p.bad;
     ctx.lineWidth = 16;
     ctx.stroke();
+    ctx.globalAlpha = 1;
     ctx.beginPath();
     ctx.moveTo(centreX, by);
     ctx.lineTo(centreX, by + bh);
-    ctx.strokeStyle = "#e04848";
+    ctx.strokeStyle = p.bad;
     ctx.lineWidth = 3;
     ctx.stroke();
 
     const ballX = centreX + s.ballX * (bw / 2 - 16);
     ctx.beginPath();
     ctx.arc(ballX, by + bh / 2, 12, 0, Math.PI * 2);
-    ctx.fillStyle = "#3fa9e8";
+    ctx.fillStyle = p.accent;
     ctx.fill();
-    ctx.strokeStyle = "#d8eefc";
+    ctx.strokeStyle = p.bg;
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.fillStyle = "#566a76";
+    ctx.fillStyle = p.dim;
     ctx.fillText(
       s.stage === "ball" ? "STAGE 2 · ACTIVE BALL  (← / →)" : "STAGE 2 · NEXT",
       cx,
-      by + bh + 26,
+      by + bh + 19,
     );
     // Visually distinguish the inactive instrument without hiding the reference.
-    ctx.fillStyle = "rgba(232,238,242,0.48)";
+    ctx.fillStyle = p.bg;
+    ctx.globalAlpha = 0.55;
     if (s.stage === "needle") ctx.fillRect(bx - 16, by - 16, bw + 32, bh + 32);
     else ctx.fillRect(cx - R - 10, cy - R - 10, 2 * R + 20, 2 * R + 20);
+    ctx.globalAlpha = 1;
   }
 
   function finishControl() {
@@ -881,7 +907,7 @@ window.AVAssess = (() => {
         <div class="info-row"><span>Run</span><strong>${s.run + 1} / ${s.totalRuns}</strong></div>
         <div class="info-row"><span>Gate speed</span><strong id="slalom-speed">1.0×</strong></div>
         <div class="info-row"><span>Obstacles avoided</span><strong id="slalom-avoid">0 / 0</strong></div>
-        <p class="small muted">Speed and obstacles increase gradually. Avoid yellow hazard markers while steering through gates.</p>
+        <p class="small muted">Speed and obstacles increase gradually. Avoid amber hazard markers while steering through gates.</p>
         <div class="keycaps" style="margin-top:14px"><span>Left: ${escapeHtml(visibleKey(state.keys.left))}</span><span>Right: ${escapeHtml(visibleKey(state.keys.right))}</span></div>
 
       </div>
@@ -957,13 +983,14 @@ window.AVAssess = (() => {
     const canvas = document.querySelector("#slalom-canvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
+    const p = palette();
     const w = canvas.width,
       h = canvas.height;
 
-    ctx.fillStyle = "#0f1a24";
+    ctx.fillStyle = p.bg;
     ctx.fillRect(0, 0, w, h);
 
-    ctx.strokeStyle = "#1f3345";
+    ctx.strokeStyle = p.line;
     ctx.lineWidth = 1;
     for (let x = 40; x < w; x += 60) {
       ctx.beginPath();
@@ -978,40 +1005,38 @@ window.AVAssess = (() => {
       ctx.stroke();
     }
 
+    // Gates: port (left) red, starboard (right) green, like navigation lights.
     const cx = w / 2;
     for (const g of s.gates) {
       const middle = cx + g.centre * 215;
       ctx.beginPath();
       ctx.arc(middle - 58, g.y, 11, 0, Math.PI * 2);
-      ctx.fillStyle = "#d94a4e";
+      ctx.fillStyle = p.bad;
       ctx.fill();
       ctx.beginPath();
       ctx.arc(middle + 58, g.y, 11, 0, Math.PI * 2);
-      ctx.fillStyle = "#5fbf8f";
+      ctx.fillStyle = p.ok;
       ctx.fill();
     }
 
-    for (const h of s.hazards) {
-      const hx = cx + h.x * 215;
+    for (const hz of s.hazards) {
+      const hx = cx + hz.x * 215;
       ctx.beginPath();
-      ctx.moveTo(hx, h.y - 13);
-      ctx.lineTo(hx + 13, h.y + 10);
-      ctx.lineTo(hx - 13, h.y + 10);
+      ctx.moveTo(hx, hz.y - 13);
+      ctx.lineTo(hx + 13, hz.y + 10);
+      ctx.lineTo(hx - 13, hz.y + 10);
       ctx.closePath();
-      ctx.fillStyle = "#eab35b";
+      ctx.fillStyle = p.caution;
       ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#ffe4b4";
-      ctx.stroke();
-      ctx.fillStyle = "#172532";
+      ctx.fillStyle = p.bg;
       ctx.font = "bold 14px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("!", hx, h.y + 7);
+      ctx.fillText("!", hx, hz.y + 7);
     }
     const px = cx + s.x * 215,
       py = 368;
-    ctx.fillStyle = "#3fa9e8";
-    ctx.strokeStyle = "#d8eefc";
+    ctx.fillStyle = p.accent;
+    ctx.strokeStyle = p.bg;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(px, py - 16);

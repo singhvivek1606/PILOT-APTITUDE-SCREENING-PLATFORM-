@@ -8,8 +8,11 @@
    Principles
    - Restraint: neutral greys + ONE accent (--ins-accent). Green/red
      (--ins-ok / --ins-bad) only for correct/wrong marks, never decoration.
-   - Instrument surfaces stay dark in both themes, like real avionics.
-     Page chrome around them follows data-theme (main.css tokens).
+   - One palette for the whole app, in dark and light (data-theme on
+     <html>). main.css builds the app pages from the same --ins-* tokens.
+   - Aviation cues stay quiet: avionics-style tracked labels, mono
+     readouts, a faint chart graticule behind the page, UTC (Zulu) clock,
+     port red / starboard green, amber only for caution.
    - Hairlines, not boxes: separate with 1px --ins-line; no glows,
      gradients or scanlines. Numbers in mono, tabular, weight 500.
    - Keyboard first: show keys with <kbd>; the active input gets the accent.
@@ -49,19 +52,28 @@
   initial-value: 0;
 }
 
+/* ---------- Theme palette (whole application) ----------
+   Dark is the default (state.theme defaults to "dark"); light overrides
+   below. main.css reads the same tokens, so pages and tests share one
+   palette. Contrast ratios are against --ins-bg. */
 :root {
+  color-scheme: dark;
+
   /* Colour */
-  --ins-bg: #0c1014; /* instrument face */
+  --ins-page: #080b0e; /* page background behind panels */
+  --ins-grid: rgba(255, 255, 255, 0.035); /* faint chart graticule on the page */
+  --ins-bg: #0c1014; /* instrument face, panels */
   --ins-surface: #11161b; /* header, cards, raised surfaces */
-  --ins-raised: #161c22; /* hover / selected surface */
+  --ins-raised: #171d23; /* hover / selected / table head */
   --ins-line: rgba(255, 255, 255, 0.07); /* hairline divider */
   --ins-line-strong: rgba(255, 255, 255, 0.13); /* borders, inactive tracks */
-  --ins-text: #eef2f5; /* data + primary text */
-  --ins-dim: #8a959f; /* labels, secondary text */
-  --ins-faint: #47515a; /* placeholders, idents */
-  --ins-accent: #6cb8ff; /* the one accent: active input, caution timer */
-  --ins-ok: #5cc28e; /* correct marks only */
-  --ins-bad: #ef7a6f; /* wrong marks, live warnings only */
+  --ins-text: #eef2f5; /* data + primary text, 17:1 */
+  --ins-dim: #9fabb6; /* labels, secondary text, 8.2:1 */
+  --ins-faint: #66727d; /* placeholders, idents, 3.9:1 */
+  --ins-accent: #6cb8ff; /* the one accent: active input, focus, timer caution */
+  --ins-ok: #5cc28e; /* correct marks, starboard (green) */
+  --ins-bad: #ef7a6f; /* wrong marks, warnings, port (red) */
+  --ins-caution: #e8b04f; /* hazards + "needs practice" only */
 
   /* Type */
   --ins-font-data: var(--mono);
@@ -79,8 +91,29 @@
   --ins-gap: 14px;
 
   /* Depth + motion */
-  --ins-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.55);
+  --ins-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.6);
   --ins-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --ins-page: #eaeef2;
+  --ins-grid: rgba(15, 23, 32, 0.05);
+  --ins-bg: #ffffff;
+  --ins-surface: #ffffff;
+  --ins-raised: #f2f5f8;
+  --ins-line: rgba(15, 23, 32, 0.09);
+  --ins-line-strong: rgba(15, 23, 32, 0.18);
+  --ins-text: #0f1720; /* 18:1 */
+  --ins-dim: #4f5b66; /* 7.0:1 */
+  --ins-faint: #7d8893; /* 3.6:1 */
+  --ins-accent: #1d6ad0; /* 5.2:1 */
+  --ins-ok: #19804f; /* 5.0:1 */
+  --ins-bad: #c23c30; /* 5.3:1 */
+  --ins-caution: #95600a; /* 5.3:1 */
+  --ins-shadow:
+    0 1px 2px rgba(15, 23, 32, 0.05), 0 14px 32px -20px rgba(15, 23, 32, 0.22);
 }
 
 .sr-only {
@@ -391,18 +424,18 @@ kbd {
   color: var(--ins-faint);
 }
 .ins-cell.is-dim {
-  opacity: 0.3;
+  opacity: 0.38;
 }
 
 .ins-cell.is-input {
   cursor: text;
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--ins-text) 3%, transparent);
 }
 .ins-cell.is-input .ins-readout {
   border-bottom-color: var(--ins-line-strong);
 }
 .ins-cell.is-input:focus-within {
-  background: rgba(255, 255, 255, 0.035);
+  background: color-mix(in srgb, var(--ins-text) 5%, transparent);
 }
 .ins-cell.is-input:focus-within .ins-readout {
   border-bottom-color: var(--ins-accent);
@@ -512,11 +545,11 @@ kbd {
   transition: background 0.15s;
 }
 .ins-btn:hover {
-  background: #ffffff;
+  background: color-mix(in srgb, var(--ins-text) 86%, var(--ins-bg));
 }
 .ins-btn kbd {
-  border-color: rgba(12, 16, 20, 0.25);
-  opacity: 0.7;
+  border-color: color-mix(in srgb, var(--ins-bg) 45%, transparent);
+  opacity: 0.8;
 }
 
 .ins-countdown {
@@ -589,11 +622,11 @@ kbd {
 .briefing {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--ins-surface);
+  border: 1px solid var(--ins-line-strong);
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--ins-shadow);
   animation: insIn 0.4s var(--ins-ease) both;
 }
 .briefing-visual {
@@ -602,14 +635,14 @@ kbd {
   justify-content: center;
   gap: 18px;
   padding: 28px;
-  background: var(--panel-2);
-  border-right: 1px solid var(--border);
+  background: var(--ins-raised);
+  border-right: 1px solid var(--ins-line-strong);
 }
 .cockpit-display {
   padding: 6px;
   border-radius: 18px;
-  background: #1a1f24;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--ins-surface);
+  border: 1px solid var(--ins-line);
   box-shadow: var(--ins-shadow);
 }
 .cockpit-display-screen {
@@ -622,6 +655,7 @@ kbd {
   overflow: hidden;
   color: var(--ins-text);
   background: var(--ins-bg);
+  border: 1px solid var(--ins-line);
 }
 .cockpit-display-screen > svg {
   width: 100%;
@@ -651,8 +685,8 @@ kbd {
 }
 .briefing-specs div {
   padding: 10px 12px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--ins-surface);
+  border: 1px solid var(--ins-line-strong);
   border-radius: 12px;
 }
 .briefing-specs dt {
@@ -660,13 +694,13 @@ kbd {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ins-dim);
 }
 .briefing-specs dd {
   margin: 4px 0 0;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--ins-text);
 }
 .briefing-instructions {
   display: flex;
@@ -698,23 +732,23 @@ kbd {
   align-items: baseline;
   gap: 10px;
   line-height: 1.55;
-  color: var(--ink-2);
+  color: var(--ins-dim);
 }
 .briefing-steps li::before {
   content: counter(step, decimal-leading-zero);
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 600;
-  color: var(--ink-3);
+  color: var(--ins-dim);
 }
 .briefing-steps code {
   padding: 1px 5px;
   border-radius: 4px;
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--ink);
-  background: var(--panel-2);
-  border: 1px solid var(--border);
+  color: var(--ins-text);
+  background: var(--ins-raised);
+  border: 1px solid var(--ins-line-strong);
 }
 
 .seg {
@@ -722,8 +756,8 @@ kbd {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
+  background: var(--ins-raised);
+  border: 1px solid var(--ins-line-strong);
   border-radius: 12px;
 }
 .seg-opt {
@@ -753,16 +787,16 @@ kbd {
 .seg-opt small {
   display: block;
   font-size: 11px;
-  color: var(--ink-3);
+  color: var(--ins-dim);
 }
 .seg-opt input:checked + span {
-  background: var(--panel);
+  background: var(--ins-surface);
   box-shadow:
-    0 0 0 1px var(--border-strong),
-    var(--shadow-sm);
+    0 0 0 1px var(--ins-faint),
+    var(--ins-shadow);
 }
 .seg-opt input:focus-visible + span {
-  outline: 2px solid var(--blue-2);
+  outline: 2px solid var(--ins-accent);
   outline-offset: 2px;
 }
 
@@ -777,25 +811,25 @@ kbd {
   text-align: center;
   font-size: 12px;
   font-weight: 600;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-top: 2px solid var(--border-strong);
+  background: var(--ins-raised);
+  border: 1px solid var(--ins-line-strong);
+  border-top: 2px solid var(--ins-faint);
   border-radius: 10px;
 }
 .ramp-step small {
   display: block;
   font-family: var(--mono);
   font-size: 10px;
-  color: var(--ink-3);
+  color: var(--ins-dim);
 }
 .ramp-step.medium {
-  border-top-color: var(--ink-3);
+  border-top-color: var(--ins-dim);
 }
 .ramp-step.hard {
-  border-top-color: var(--ink);
+  border-top-color: var(--ins-text);
 }
 
-/* Start bar: dark strip in both themes, pinned while scrolling */
+/* Start bar: pinned while scrolling */
 .bottom-bar {
   position: sticky;
   bottom: 16px;
@@ -826,7 +860,7 @@ kbd {
   letter-spacing: 0.04em;
 }
 .bottom-bar .btn:hover {
-  background: #ffffff;
+  background: color-mix(in srgb, var(--ins-text) 86%, var(--ins-bg));
 }
 
 /* ---------- Results (complete screen) ---------- */
@@ -866,10 +900,14 @@ kbd {
   color: var(--ins-ok);
   border-color: color-mix(in srgb, var(--ins-ok) 45%, transparent);
 }
+.result-hero.fail .result-status {
+  color: var(--ins-caution);
+  border-color: color-mix(in srgb, var(--ins-caution) 45%, transparent);
+}
 .result-details {
   margin: 14px 0 6px;
   font-size: 14px;
-  color: #cdd4da;
+  color: color-mix(in srgb, var(--ins-text) 82%, var(--ins-bg));
 }
 .result-hero .muted {
   color: var(--ins-dim);
@@ -925,8 +963,8 @@ kbd {
 }
 .result-stat {
   padding: 16px 18px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--ins-surface);
+  border: 1px solid var(--ins-line-strong);
   border-radius: 14px;
   animation: fadeInUp 0.4s ease both;
 }
@@ -935,7 +973,7 @@ kbd {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ins-dim);
 }
 .result-stat strong {
   display: block;
@@ -945,11 +983,11 @@ kbd {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  color: var(--ink);
+  color: var(--ins-text);
 }
 .result-stat small {
   font-size: 12px;
-  color: var(--ink-2);
+  color: var(--ins-dim);
 }
 .result-grid {
   display: grid;
@@ -958,8 +996,8 @@ kbd {
 }
 .result-card {
   padding: 18px 20px;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--ins-surface);
+  border: 1px solid var(--ins-line-strong);
   border-radius: 14px;
   animation: fadeInUp 0.45s ease both;
 }
@@ -969,7 +1007,7 @@ kbd {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ins-dim);
 }
 .table-wrap {
   overflow-x: auto;
@@ -987,10 +1025,10 @@ kbd {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: var(--ink-2);
+  color: var(--ins-dim);
 }
 .param-chip.miss {
-  color: var(--red);
+  color: var(--ins-bad);
 }
 .param-bar {
   display: grid;
@@ -1003,18 +1041,18 @@ kbd {
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 600;
-  color: var(--ink-2);
+  color: var(--ins-dim);
 }
 .param-track {
   height: 4px;
   border-radius: 2px;
-  background: var(--panel-2);
+  background: var(--ins-raised);
   overflow: hidden;
 }
 .param-fill {
   height: 100%;
   border-radius: inherit;
-  background: var(--ink);
+  background: var(--ins-text);
   transform-origin: left;
   animation: barGrow 0.9s var(--ins-ease) both;
 }
@@ -1023,7 +1061,7 @@ kbd {
   text-align: right;
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--ink-2);
+  color: var(--ins-dim);
 }
 
 /* ---------- Instrument responsive ---------- */
@@ -1042,7 +1080,7 @@ kbd {
   }
   .briefing-visual {
     border-right: 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--ins-line-strong);
   }
   .result-grid {
     grid-template-columns: 1fr;
@@ -1307,7 +1345,7 @@ kbd {
   border-color: transparent;
 }
 .ins-test .btn.primary:hover {
-  background: #ffffff;
+  background: color-mix(in srgb, var(--ins-text) 86%, var(--ins-bg));
 }
 .ins-test .btn.secondary {
   color: var(--ins-dim);
@@ -1351,6 +1389,7 @@ kbd {
   font-size: var(--ins-fs-label);
   font-weight: 600;
   letter-spacing: var(--ins-track-label);
+  text-transform: uppercase;
   color: var(--ins-dim);
 }
 .ins-test .orientation-instruments strong,
@@ -1435,5 +1474,150 @@ kbd {
 @keyframes insAlert {
   50% {
     opacity: 0.7;
+  }
+}
+
+/* ============================================================
+   Sample displays + charts
+   SVG drawings from AVUI (heroGauge, module previews, scoreChart)
+   carry these classes instead of colours, so they follow the theme.
+   ============================================================ */
+
+.pv-face {
+  fill: var(--ins-bg);
+}
+.pv-panel {
+  fill: var(--ins-raised);
+}
+.pv-rim {
+  fill: none;
+  stroke: var(--ins-line-strong);
+}
+.pv-tick {
+  stroke: var(--ins-dim);
+}
+.pv-tick-minor {
+  stroke: var(--ins-faint);
+}
+.pv-guide {
+  stroke: var(--ins-line-strong);
+  stroke-dasharray: 3 6;
+}
+.pv-ink {
+  fill: var(--ins-text);
+}
+.pv-label {
+  fill: var(--ins-dim);
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+}
+.pv-mono {
+  font-family: var(--mono);
+}
+.pv-accent {
+  fill: var(--ins-accent);
+}
+.pv-accent-line {
+  fill: none;
+  stroke: var(--ins-accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pv-hub {
+  fill: var(--ins-bg);
+  stroke: var(--ins-accent);
+}
+.pv-target {
+  stroke: var(--ins-bad);
+  stroke-linecap: round;
+}
+.pv-port {
+  fill: var(--ins-bad);
+}
+.pv-stbd {
+  fill: var(--ins-ok);
+}
+.pv-caution {
+  fill: var(--ins-caution);
+}
+.pv-warn {
+  fill: var(--ins-bad);
+}
+.pv-warn-text {
+  fill: var(--ins-bg);
+  font-family: var(--font);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+/* The heading rose drifts slowly, like an aircraft holding a heading */
+.pv-rose {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: roseDrift 18s ease-in-out infinite alternate;
+}
+
+.pv-maths {
+  padding: 18px 22px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: left;
+  color: var(--ins-text);
+}
+.pv-maths-q {
+  margin-bottom: 8px;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ins-dim);
+}
+.pv-maths-a {
+  margin-top: 12px;
+  padding-top: 8px;
+  color: var(--ins-dim);
+  border-top: 1px dashed var(--ins-line-strong);
+}
+.pv-maths-a span {
+  margin-left: 8px;
+  padding: 0 4px;
+  color: var(--ins-text);
+  border-bottom: 1px solid var(--ins-accent);
+}
+
+.chart-grid {
+  stroke: var(--ins-line);
+}
+.chart-label {
+  fill: var(--ins-dim);
+  font-family: var(--mono);
+}
+.chart-pass {
+  stroke: var(--ins-ok);
+  stroke-dasharray: 4 5;
+  opacity: 0.7;
+}
+.chart-pass-label {
+  fill: var(--ins-ok);
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+}
+.chart-line {
+  fill: none;
+  stroke: var(--ins-text);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.chart-dot {
+  fill: var(--ins-bg);
+  stroke: var(--ins-text);
+  stroke-width: 2;
+}
+
+@keyframes roseDrift {
+  from {
+    transform: rotate(-14deg);
+  }
+  to {
+    transform: rotate(18deg);
   }
 }

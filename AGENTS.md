@@ -39,8 +39,8 @@ Double-click helpers: `RUN_ELECTRON.cmd` / `BUILD_WINDOWS_INSTALLER.cmd` (Window
 
 ```
 index.html            App shell: header/nav, <main id="app">, toast; loads js/*.js with defer in order
-css/main.css          App chrome + page styles (dark/light themes, via data-theme)
-css/instrument.css    Instrument design system for tests: tokens, components, briefing/results, module adapters
+css/main.css          App chrome + pages (header, home, register, results, history, controls), built on the theme tokens
+css/instrument.css    Design system: dark/light theme palette (--ins-*), test components, briefing/results, previews, module adapters
 js/core.js            window.AVCore   — constants (MODULES, DEFAULT_KEYS, STORAGE_KEYS), shared `state`, `app` hooks, read/write storage, validKeys
 js/ui.js              window.AVUI     — pure helpers (escapeHtml, clamp, rand, fmtTime), SVG builders (gauges, previews, planeSvg, scoreChart), toast
 js/screens.js         window.AVScreens — non-test pages as HTML strings: home/welcome, register, tests, results, history, settings, complete
@@ -65,14 +65,15 @@ tests/smoke.test.mjs  node:test smoke tests; loads browser modules in a vm conte
 
 ## Design system (`css/instrument.css`)
 
-Everything a candidate sees inside a test — header, instrument panels, readouts, data entry, review, briefing and results — comes from `css/instrument.css`. Its header comment lists every token and component; read it before styling a test.
+The theme palette for the **whole app** and everything a candidate sees inside a test — header, instrument panels, readouts, data entry, review, briefing and results — comes from `css/instrument.css`. `main.css` builds the app pages from the same tokens. The header comment in `instrument.css` lists every token and component; read it before styling anything.
 
 - **Tokens:** `--ins-*` (colour, type, space, motion). Use them instead of raw values.
 - **Restraint:** neutral greys + one accent (`--ins-accent`) for the active input and timer caution. `--ins-ok` / `--ins-bad` only for correct/wrong marks and live warnings. No glows, gradients, scanlines or extra colours.
-- **Surfaces:** instrument panels stay dark in both themes; page chrome (main.css) follows `data-theme`.
+- **Themes:** dark is the default (`:root`), light overrides it (`:root[data-theme="light"]`); `applyTheme()` in `app.js` sets the attribute. Never hard-code a colour: CSS uses `var(--ins-*)`, SVG drawings in `ui.js` use the `.pv-*` / `.chart-*` classes, and canvas code reads the tokens through `palette()` in `assessment.js`.
+- **Aviation cues (keep them quiet):** tracked uppercase labels, mono readouts, the faint chart graticule on the page, the UTC (Zulu) clock in the header, port red / starboard green, amber (`--ins-caution`) only for hazards and "needs practice".
 - **Structure:** `renderAssessment()` wraps every test view in `.ins-test`. The header is `runHead()` (`.ins-head`); content goes in `.ins-panel` → `.ins-panel-head` / `.ins-strip` + `.ins-cell` / `.ins-line` / `.ins-foot`. Memory is the reference implementation.
 - **Keyboard first:** show keys with `<kbd>`; no on-screen keypads.
-- **Older modules:** Control, Maths, Slalom, Orientation and Task Manager still use their original markup, mapped onto the tokens by the "Module adapters" section. When you rebuild one on `.ins-*` components, delete its adapter rules. Their canvas drawings (Control, Slalom) still use hard-coded colours in `assessment.js`.
+- **Older modules:** Control, Maths, Slalom, Orientation and Task Manager still use their original markup, mapped onto the tokens by the "Module adapters" section. When you rebuild one on `.ins-*` components, delete its adapter rules.
 
 ## The six modules (`AVCore.MODULES`)
 

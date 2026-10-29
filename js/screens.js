@@ -60,7 +60,7 @@ window.AVScreens = (() => {
       </div>
       <div class="hero-instrument">
         ${heroGauge()}
-        <span class="hero-label">PRIMARY FLIGHT DISPLAY · SAMPLE</span>
+        <span class="hero-label">HEADING INDICATOR · SAMPLE</span>
       </div>
     </section>
 
@@ -347,7 +347,7 @@ window.AVScreens = (() => {
       ],
       slalom: [
         "Steer the aircraft left and right through the red and green gates.",
-        "The gates become faster and more frequent as the run progresses. Avoid yellow obstacles.",
+        "The gates become faster and more frequent as the run progresses. Avoid amber hazard markers.",
         "Three scored runs of 90 seconds each; use Practice first if needed.",
       ],
       orientation: [
@@ -458,7 +458,8 @@ window.AVScreens = (() => {
     const scored = s.mode === "assessment";
     const tone = !scored ? "practice" : Number(s.score) >= 60 ? "pass" : "fail";
     const breakdown = window.AVAssess?.renderBreakdown?.(s) || "";
-    return `
+    // .ins-done-<module> lets css/instrument.css theme a module's results with its test.
+    return `<div class="ins-done ins-done-${s.module}">
     <section class="result-hero ${tone}">
       <div class="result-ring" style="--score:${s.score}">
         ${ring(s.score / 100, {
@@ -480,7 +481,7 @@ window.AVScreens = (() => {
         </div>
       </div>
     </section>
-    ${breakdown}`;
+    ${breakdown}</div>`;
   }
 
   // --- helpers ---

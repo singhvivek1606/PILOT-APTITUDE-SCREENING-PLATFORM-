@@ -93,7 +93,8 @@ Run them all manually with `npm run verify`.
 - Welcome screen and candidate registration before starting assessments.
 - Six modules: Memory, Control, Mathematics, Slalom, Orientation, Task Manager.
 - In-module Practice or Scored Assessment choices; only scored results save to History.
-- Minimal instrument-style test shell shared by all modules (neutral greys, one accent), defined in `css/instrument.css`: exam header with candidate, round progress and timer, pre-flight briefing screen (press Enter to start), and an animated results screen.
+- One calm, aviation-inspired theme across the whole app, in dark and light mode (neutral greys, one accent, UTC clock, chart-style background), defined in `css/instrument.css`.
+- Minimal instrument-style test shell shared by all modules: exam header with candidate, round progress and timer, pre-flight briefing screen (press Enter to start), and an animated results screen.
 - Memory: 3-2-1 countdown, a single four-reading instrument strip, inline keyboard recall (← → move between boxes, Enter moves to the next empty box and submits), feedback after each round, and a results breakdown by round and by parameter. Timings and scoring are unchanged.
 - Control instrument needle and ball run in **separate stages** (customized design).
 - Slalom accelerates and adds hazards during the run.

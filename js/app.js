@@ -14,7 +14,7 @@
     write,
     validKeys,
   } = window.AVCore;
-  const { clamp, fmtTime, toast } = window.AVUI;
+  const { clamp, pad, fmtTime, toast } = window.AVUI;
   const screens = window.AVScreens;
   const assess = window.AVAssess;
   // expose held keys + helpers to assessments
@@ -840,6 +840,19 @@
     applyTheme();
   }
 
+  // UTC (Zulu) clock in the header — the time reference pilots use.
+  function startUtcClock() {
+    const el = document.getElementById("utcClock");
+    if (!el) return;
+    const tick = () => {
+      const d = new Date();
+      el.textContent = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}Z`;
+      el.dateTime = d.toISOString();
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+
   function bindThemeToggle() {
     const toggle = document.getElementById("themeToggle");
     if (!toggle) return;
@@ -944,6 +957,7 @@
 
   applyTheme();
   bindThemeToggle();
+  startUtcClock();
 
   const startPage = location.hash.slice(1) || "home";
   route(startPage, true);
