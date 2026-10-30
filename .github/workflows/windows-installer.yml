@@ -1,0 +1,78 @@
+name: Build and publish Windows installer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/windows-installer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows-installer:
+    name: Build Windows x64 NSIS setup
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out latest AeroVector source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Validate JavaScript syntax
+        run: npm run check:syntax
+
+      - name: Run automated smoke tests
+        run: npm test
+
+      - name: Build Windows installer
+        run: npm run dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Verify installer and print SHA-256
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem -Path dist -File -Filter 'AeroVector-Pilot-Aptitude-Setup-*.exe')
+          if ($files.Count -ne 1) {
+            throw "Expected exactly one Windows installer in dist; found $($files.Count)."
+          }
+          $f = $files[0]
+          Write-Host "Built $($f.Name) ($([math]::Round($f.Length / 1MB, 1)) MB)"
+          Get-FileHash -Algorithm SHA256 $f.FullName | Format-List
+
+      - name: Save downloadable installer as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AeroVector-Windows-Installer
+          path: dist/AeroVector-Pilot-Aptitude-Setup-*.exe
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish installer in GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v2.3.0-windows
+          target_commitish: ${{ github.sha }}
+          name: AeroVector v2.3.0 - Windows Installer
+          make_latest: true
+          generate_release_notes: false
+          body: |
+            AeroVector Pilot Aptitude Screening Platform for Windows x64.
+            Download the Setup .exe below and double-click to install.
+            Built automatically from the GitHub repository with electron-builder and NSIS.
+            This unsigned hackathon prototype may show a Windows SmartScreen warning.
+            The app stores candidate details and scored results locally on each computer.
+            macOS builds and project source are documented in README.md.
+          files: dist/AeroVector-Pilot-Aptitude-Setup-*.exe
+          fail_on_unmatched_files: true
+          overwrite_files: true
