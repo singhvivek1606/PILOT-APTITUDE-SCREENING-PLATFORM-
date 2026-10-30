@@ -6,6 +6,20 @@ AeroVector is a **desktop application** made with Electron, HTML, CSS, and JavaS
 
 > **Hackathon requirement:** The supplied assignment specifically requires a **working Windows native executable/installer**. macOS support is an additional convenience for teammates; it does **not** replace submitting or demonstrating the Windows build.
 
+## Download the Windows installer (no Node.js needed)
+
+**Windows 10/11, 64-bit:** [Download AeroVector-Pilot-Aptitude-Setup-2.3.0.exe](https://github.com/singhvivek1606/PILOT-APTITUDE-SCREENING-PLATFORM-/releases/download/v2.3.0-windows/AeroVector-Pilot-Aptitude-Setup-2.3.0.exe) (**97.5 MiB**).
+
+- Official project [GitHub Release v2.3.0-windows](https://github.com/singhvivek1606/PILOT-APTITUDE-SCREENING-PLATFORM-/releases/tag/v2.3.0-windows).
+- Double-click the downloaded `.exe` to run the installer, choose an installation folder, then open **AeroVector Pilot Aptitude** from your desktop or Start menu.
+- Unlike `RUN_ELECTRON.cmd`, the installed application **does not require VS Code, Node.js or npm**.
+- This is an **unsigned** educational build. Windows SmartScreen may display a publisher warning. Download only from this repository's Release page and verify the source and checksum if desired.
+- SHA-256: `20677254B52EB79D4DD97C02BAEB7634B8BB189653EF14210E4EF1B5ED404AC6`
+- Installer generated on a Windows GitHub Actions runner; [view the successful build](https://github.com/singhvivek1606/PILOT-APTITUDE-SCREENING-PLATFORM-/actions/runs/41003680618).
+- Candidate data and scored results persist locally for the app profile; installing or reopening the app does not automatically erase them.
+
+To produce another Windows installer from source, run `npm ci` and `npm run dist:win` on a Windows machine, or start the **Build and publish Windows installer** workflow manually from GitHub Actions.
+
 ## 1. Requirements
 
 - A Windows PC (Windows 10/11) **or an Apple Mac** (macOS, Intel x64 or Apple Silicon M-series arm64).
